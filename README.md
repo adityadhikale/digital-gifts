@@ -31,13 +31,13 @@
 <div align="center">
 
 ### 🏠 Landing Page
-<img src="./public/screenshots/landing.png" alt="Landing Page" width="80%" />
+<img src="./public/screenshots/landing-page.png" alt="Landing Page" width="80%" />
 
 ### 🛠️ Gift Builder
-<img src="./public/screenshots/builder.png" alt="Gift Builder" width="80%" />
+<img src="./public/screenshots/gift-builder.png" alt="Gift Builder" width="80%" />
 
 ### 🎀 Gift Reveal
-<img src="./public/screenshots/reveal.png" alt="Gift Reveal" width="80%" />
+<img src="./public/screenshots/gift-reveal.png" alt="Gift Reveal" width="80%" />
 
 </div>
 
