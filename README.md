@@ -26,8 +26,6 @@
 
 ## 📸 Screenshots
 
-> **To add screenshots:** take a screenshot of your app, save them to `public/screenshots/` as `landing.png`, `builder.png`, and `reveal.png`, then push to GitHub — they'll appear here automatically.
-
 <div align="center">
 
 ### 🏠 Landing Page
