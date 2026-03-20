@@ -396,7 +396,7 @@ function MemoryModalContent({ content, photos }: { content: Record<string, unkno
             onClick={() => setSelectedPhoto(null)}>
             <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} exit={{ scale: 0.8 }}
               className="bg-white shadow-2xl"
-              style={{ padding: '10px 10px 40px 10px', maxWidth: '90vw', width: '100%' }}
+              style={{ padding: '10px 10px 40px 10px', maxWidth: 'min(90vw, 420px)', width: '100%' }}
               onClick={(e) => e.stopPropagation()}>
               <img src={displayPhotos[selectedPhoto].publicUrl || ''} alt=""
                 className="w-full aspect-square object-cover" />
