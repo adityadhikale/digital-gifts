@@ -206,7 +206,7 @@ export default function BuildPage() {
             case 'sweets': return (c.types as string[] || []).length > 0
             case 'teddy': return (c.holdings as string[] || []).length > 0
             case 'magical': return (c.types as string[] || []).length > 0
-            case 'letter': return (c.styles as string[] || []).length > 0
+            case 'letter': return (c.styles as string[] || []).length > 0 && String(c.text || '').trim().length > 0
             case 'memory': return (c.layouts as string[] || []).length > 0 && (item.photos || []).length > 0
             default: return true
           }

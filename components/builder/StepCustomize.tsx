@@ -226,23 +226,26 @@ function MagicalOptions({ content, onChange }: { content: Record<string, any>; o
 function LetterOptions({ content, onChange, toName, fromName }: {
   content: Record<string, any>; onChange: (c: Record<string, any>) => void; toName?: string; fromName?: string
 }) {
-  const selected: string[] = content.styles || (content.style ? [content.style] : [])
-  const toggle = (s: string) => {
-    const updated = selected.includes(s) ? selected.filter(x => x !== s) : [...selected, s]
-    onChange({ ...content, styles: updated, style: updated[0] || '' })
+  const selectedStyle: string = content.styles?.[0] || content.style || ''
+  const selectStyle = (s: string) => {
+    onChange({ ...content, styles: [s], style: s })
   }
   const activeColor = '#2d1f24'
   return (
     <div className="space-y-4">
       <div>
         <Label>Style</Label>
-        <p className="text-[10px] text-text-muted mb-3 font-[family-name:var(--font-dm-sans)]">Pick one or multiple letter styles!</p>
+        <p className="text-[10px] text-text-muted mb-3 font-[family-name:var(--font-dm-sans)]">Pick one letter style</p>
         <div className="flex flex-wrap gap-2 sm:gap-3">
           {['parchment scroll', 'sealed envelope', 'open letter'].map((s) => (
-            <MultiChip key={s} imageSrc={letterStyleImages[s]} label={s} selected={selected.includes(s)} onClick={() => toggle(s)} />
+            <MultiChip key={s} imageSrc={letterStyleImages[s]} label={s} selected={selectedStyle === s} onClick={() => selectStyle(s)} />
           ))}
         </div>
-        <MixSummary items={selected} />
+        {selectedStyle && (
+          <p className="mt-2 text-xs font-[family-name:var(--font-dm-sans)]" style={{ color: '#8b2a3e' }}>
+            Selected: {selectedStyle.charAt(0).toUpperCase() + selectedStyle.slice(1)}
+          </p>
+        )}
       </div>
       <div className="relative rounded-2xl overflow-hidden shadow-md"
         style={{ background: 'radial-gradient(ellipse at 30% 20%, rgba(255,248,240,0.8) 0%, transparent 50%), #fdf3e3' }}>
@@ -251,7 +254,7 @@ function LetterOptions({ content, onChange, toName, fromName }: {
           <p className="font-[family-name:var(--font-playfair)] italic text-base mb-1 leading-[28px]" style={{ color: activeColor }}>
             Dear {toName || 'Someone Special'},
           </p>
-          <textarea value={content.text || ''} onChange={(e) => onChange({ ...content, styles: selected, text: e.target.value })}
+          <textarea value={content.text || ''} onChange={(e) => onChange({ ...content, styles: selectedStyle ? [selectedStyle] : [], text: e.target.value })}
             placeholder="Write your heart out..."
             className="w-full bg-transparent border-none resize-none font-[family-name:var(--font-playfair)] italic text-sm leading-[28px] placeholder:text-text-muted/40 focus:outline-none focus:ring-0"
             style={{ color: activeColor, lineHeight: '28px', minHeight: '120px' }} />
@@ -464,12 +467,12 @@ export default function StepCustomize({ items, onUpdateItem, onUpdatePhotos, onR
             currentItem.type === 'sweets' ? ((c.types as string[]) || []).length === 0 :
               currentItem.type === 'teddy' ? ((c.holdings as string[]) || []).length === 0 :
                 currentItem.type === 'magical' ? ((c.types as string[]) || []).length === 0 :
-                  currentItem.type === 'letter' ? ((c.styles as string[]) || []).length === 0 :
+                  currentItem.type === 'letter' ? ((c.styles as string[]) || []).length === 0 || String(c.text || '').trim().length === 0 :
                     currentItem.type === 'memory' ? ((c.layouts as string[]) || []).length === 0 || (currentItem.photos || []).length === 0 : false
         return isEmpty ? (
           <p className="text-xs mb-2 font-[family-name:var(--font-dm-sans)]" style={{ color: '#8b2a3e' }}>
-            {currentItem.type === 'memory' && ((currentItem.content?.layouts as string[]) || []).length > 0
-              ? '✦ Upload at least one photo to continue'
+            {currentItem.type === 'letter' && ((currentItem.content?.styles as string[]) || []).length > 0
+              ? '✦ Write your letter to continue'
               : '✦ Pick at least one option to continue'
             }
           </p>
