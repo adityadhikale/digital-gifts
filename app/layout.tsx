@@ -31,9 +31,9 @@ const dancing = Dancing_Script({
 
 /** Site metadata for SEO and social sharing */
 export const metadata: Metadata = {
-  title: "Digital Gifts — Send love, beautifully",
+  title: "Digital Gifts | Make a gift and send it as a link",
   description:
-    "Build a personal digital gift — flowers, sweet treats, memories and more — and share it with someone you love.",
+    "Pick flowers, sweets, a teddy, a letter or photos, add a message, and send the recipient a link to open it.",
 };
 
 /**

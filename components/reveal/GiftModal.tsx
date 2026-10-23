@@ -5,38 +5,9 @@ import { useState, useMemo, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { GiftItem, GiftPhoto } from '@/lib/types'
+import { optionImages } from '@/lib/giftCatalog'
 
-const flowerImages: Record<string, string> = {
-  rose: '/illustrations/flowers/rose.png',
-  peony: '/illustrations/flowers/peony.png',
-  wildflower: '/illustrations/flowers/wildflower.png',
-  tulip: '/illustrations/flowers/tulip.png',
-  sunflower: '/illustrations/flowers/sunflower.png',
-}
-const sweetImages: Record<string, string> = {
-  'chocolate box': '/illustrations/sweets/chocolate-box.png',
-  cupcakes: '/illustrations/sweets/cupcakes.png',
-  macarons: '/illustrations/sweets/macarons.png',
-  'cookie jar': '/illustrations/sweets/cookie-jar.png',
-  cake: '/illustrations/sweets/cake.png',
-}
-const teddyImages: Record<string, string> = {
-  heart: '/illustrations/teddy/teddy-heart.png',
-  flower: '/illustrations/teddy/teddy-flower.png',
-  balloon: '/illustrations/teddy/teddy-balloon.png',
-  'gift box': '/illustrations/teddy/teddy-giftbox.png',
-}
-const magicalImages: Record<string, string> = {
-  'snow globe': '/illustrations/magical/snow-globe.png',
-  'floating balloons': '/illustrations/magical/balloons.png',
-  'wishing lantern': '/illustrations/magical/lantern.png',
-  'jar of stars': '/illustrations/magical/star-jar.png',
-}
-const letterImages: Record<string, string> = {
-  'parchment scroll': '/illustrations/letters/scroll.png',
-  'sealed envelope': '/illustrations/letters/envelope.png',
-  'open letter': '/illustrations/letters/open-letter.png',
-}
+const { flower: flowerImages, sweets: sweetImages, teddy: teddyImages, magical: magicalImages, letter: letterImages } = optionImages
 
 interface GiftModalProps {
   item: (GiftItem & { photos?: GiftPhoto[] }) | null
@@ -367,7 +338,7 @@ function MemoryModalContent({ content, photos }: { content: Record<string, unkno
       {displayPhotos.length > 0 && (
         <p className="text-center text-[11px] sm:text-[12px] mb-4 font-[family-name:var(--font-playfair)] italic opacity-50"
           style={{ color: '#6b4a52' }}>
-          ✦ Tap any photo to view · captions shown below each
+          Tap a photo to see it larger
         </p>
       )}
 

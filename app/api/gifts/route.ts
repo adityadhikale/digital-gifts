@@ -40,11 +40,11 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!fromName || !toName) {
-      return NextResponse.json({ error: 'Names are required' }, { status: 400 })
+      return NextResponse.json({ error: 'Add both names.' }, { status: 400 })
     }
 
     if (!items || items.length === 0) {
-      return NextResponse.json({ error: 'At least one gift item is required' }, { status: 400 })
+      return NextResponse.json({ error: 'Pick at least one gift.' }, { status: 400 })
     }
 
     // Generate unique gift ID

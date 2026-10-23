@@ -12,8 +12,8 @@ import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import { FullGift, Gift, GiftItem, GiftPhoto } from '@/lib/types'
 import RibbonAnimation from '@/components/reveal/RibbonAnimation'
-import FloatingLetter from '@/components/reveal/FloatingLetter'
-import GiftGrid from '@/components/reveal/GiftGrid'
+import LetterCard from '@/components/reveal/LetterCard'
+import GiftArrangement from '@/components/reveal/GiftArrangement'
 import FloatingElements from '@/components/ui/FloatingElements'
 import Button from '@/components/ui/Button'
 
@@ -30,8 +30,8 @@ export default function GiftRevealPage() {
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
-  // Animation state - controls when content appears after ribbon animation
-  const [showContent, setShowContent] = useState(false)
+  // Reveal stage: unwrap animation, then the letter, then the gift arrangement
+  const [stage, setStage] = useState<'unwrap' | 'letter' | 'arrange'>('unwrap')
 
   /**
    * Fetch gift data from Supabase including items and photos.
@@ -89,8 +89,8 @@ export default function GiftRevealPage() {
 
   /** Handle ribbon animation completion */
   const handleAnimationComplete = useCallback(() => {
-    setShowContent(true)
-  }, [])
+    setStage(gift?.gift.message ? 'letter' : 'arrange')
+  }, [gift])
 
   // Loading state
   if (loading) {
@@ -121,12 +121,12 @@ export default function GiftRevealPage() {
             </svg>
           </div>
           <h1 className="font-[family-name:var(--font-playfair)] text-2xl text-text mb-3">
-            This gift has expired or doesn&apos;t exist
+            We can&apos;t find this gift
           </h1>
           <p className="text-text-muted mb-8 max-w-sm mx-auto">
-            The gift link might be incorrect or the gift may have been removed.
+            Check that the link is complete. If it is, the gift may have been deleted.
           </p>
-          <Link href="/"><Button>Go Home</Button></Link>
+          <Link href="/"><Button>Go to the home page</Button></Link>
         </motion.div>
       </div>
     )
@@ -137,14 +137,13 @@ export default function GiftRevealPage() {
 
   return (
     <main
-      className="min-h-screen overflow-hidden"
+      className="min-h-dvh overflow-hidden"
       style={{ background: 'linear-gradient(135deg, #f5e6d8 0%, #fdf6ee 50%, #e8ddd5 100%)' }}
     >
       {/* Ribbon unwrapping animation - shown before content */}
-      {!showContent && <RibbonAnimation onComplete={handleAnimationComplete} />}
+      {stage === 'unwrap' && <RibbonAnimation onComplete={handleAnimationComplete} toName={gift.gift.to_name} />}
 
-      {/* Main content - shown after animation */}
-      {showContent && (
+      {stage !== 'unwrap' && (
         <>
           <FloatingElements count={20} />
 
@@ -154,150 +153,90 @@ export default function GiftRevealPage() {
             style={{ background: 'linear-gradient(to bottom, rgba(139,42,62,0.04) 0%, transparent 40%, rgba(212,197,184,0.08) 100%)' }}
           />
 
-          <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-            {/* Header section with animated sparkles */}
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, ease: 'easeOut' }}
-              className="text-center mb-16 relative"
-            >
-              {/* Decorative sparkles */}
+          {/* One stage per screen */}
+          <div className="relative z-10 min-h-dvh max-w-5xl mx-auto px-4 sm:px-6 flex flex-col items-center justify-center py-6 text-center">
+            {stage === 'letter' && (
               <motion.div
-                className="absolute -top-4 left-1/4 w-6 h-6"
-                animate={{ opacity: [0.4, 1, 0.4], scale: [0.8, 1.2, 0.8], rotate: [0, 180, 360] }}
-                transition={{ duration: 3, repeat: Infinity }}
-              >
-                <svg viewBox="0 0 24 24" fill="#8b2a3e" opacity="0.4">
-                  <path d="M12 0L14 10L24 12L14 14L12 24L10 14L0 12L10 10L12 0Z" />
-                </svg>
-              </motion.div>
-              <motion.div
-                className="absolute top-8 right-1/4 w-4 h-4"
-                animate={{ opacity: [0.3, 0.8, 0.3], scale: [1, 1.3, 1] }}
-                transition={{ duration: 2.5, delay: 0.5, repeat: Infinity }}
-              >
-                <svg viewBox="0 0 24 24" fill="#deb897" opacity="0.5">
-                  <path d="M12 0L14 10L24 12L14 14L12 24L10 14L0 12L10 10L12 0Z" />
-                </svg>
-              </motion.div>
-              <motion.div
-                className="absolute -bottom-2 left-1/3 w-5 h-5"
-                animate={{ opacity: [0.5, 1, 0.5], rotate: [0, 90, 0] }}
-                transition={{ duration: 4, delay: 1, repeat: Infinity }}
-              >
-                <svg viewBox="0 0 24 24" fill="#8b2a3e" opacity="0.3">
-                  <path d="M12 0L14 10L24 12L14 14L12 24L10 14L0 12L10 10L12 0Z" />
-                </svg>
-              </motion.div>
-
-              {/* Animated heart icon */}
-              <motion.div
-                className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-8"
-                animate={{ scale: [1, 1.08, 1] }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-              >
-                <svg viewBox="0 0 64 64" fill="none" className="w-full h-full drop-shadow-lg">
-                  <path
-                    d="M32 58C32 58 8 40 8 22C8 12 16 6 24 6C28 6 31 8 32 10C33 8 36 6 40 6C48 6 56 12 56 22C56 40 32 58 32 58Z"
-                    fill="url(#revealHeartGrad)"
-                  />
-                  <path
-                    d="M24 14C20 14 16 18 16 24C16 26 17 28 18 30"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    opacity="0.3"
-                  />
-                  <defs>
-                    <linearGradient id="revealHeartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#8b2a3e" />
-                      <stop offset="100%" stopColor="#6b1e2e" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-              </motion.div>
-
-              {/* Title */}
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
+                key="letter"
+                initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.8 }}
-                className="font-[family-name:var(--font-playfair)] text-4xl sm:text-5xl lg:text-6xl font-light text-text mb-6 tracking-wide"
+                transition={{ duration: 0.8, ease: 'easeOut' }}
+                className="w-full flex flex-col items-center"
               >
-                You&apos;ve received a gift
-              </motion.h1>
+                {/* Animated heart icon */}
+                <motion.div
+                  className="w-12 h-12 sm:w-16 sm:h-16 mb-3"
+                  animate={{ scale: [1, 1.08, 1] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <svg viewBox="0 0 64 64" fill="none" className="w-full h-full drop-shadow-lg">
+                    <path
+                      d="M32 58C32 58 8 40 8 22C8 12 16 6 24 6C28 6 31 8 32 10C33 8 36 6 40 6C48 6 56 12 56 22C56 40 32 58 32 58Z"
+                      fill="url(#revealHeartGrad)"
+                    />
+                    <path d="M24 14C20 14 16 18 16 24C16 26 17 28 18 30" stroke="white" strokeWidth="2" strokeLinecap="round" opacity="0.3" />
+                    <defs>
+                      <linearGradient id="revealHeartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#8b2a3e" />
+                        <stop offset="100%" stopColor="#6b1e2e" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </motion.div>
 
-              {/* From name */}
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5, duration: 0.8 }}
-                className="font-[family-name:var(--font-playfair)] italic text-2xl sm:text-3xl mb-2"
-                style={{ color: '#8b2a3e' }}
-              >
-                From {gift.gift.from_name}, with love
-              </motion.p>
+                <h1 className="font-[family-name:var(--font-playfair)] text-2xl sm:text-4xl font-light text-text mb-5 tracking-wide">
+                  You&apos;ve received a gift
+                </h1>
 
-              {/* To name */}
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.7, duration: 0.8 }}
-                className="text-text-muted text-lg"
-              >
-                For <span className="text-text font-medium">{gift.gift.to_name}</span>
-              </motion.p>
-            </motion.div>
-
-            {/* Personal message as floating letter */}
-            {gift.gift.message && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6, duration: 0.8 }}
-              >
-                <FloatingLetter
+                <LetterCard
                   message={gift.gift.message}
                   fromName={gift.gift.from_name}
                   toName={gift.gift.to_name}
                 />
+
+                <div className="mt-6">
+                  <Button onClick={() => setStage('arrange')}>See your gifts</Button>
+                </div>
               </motion.div>
             )}
 
-            {/* Gift items grid */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8, duration: 0.8 }}
-            >
-              <GiftGrid items={gift.items} fromName={gift.gift.from_name} toName={gift.gift.to_name} />
-            </motion.div>
+            {stage === 'arrange' && (
+              <motion.div
+                key="arrange"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8 }}
+                className="w-full flex flex-col items-center"
+              >
+                <h1 className="font-[family-name:var(--font-playfair)] text-2xl sm:text-4xl font-light text-text tracking-wide">
+                  From {gift.gift.from_name}
+                </h1>
+                <p className="text-text-muted text-sm sm:text-base mb-2">
+                  For <span className="text-text font-medium">{gift.gift.to_name}</span>
+                </p>
 
-            {/* Footer */}
-            <motion.footer
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.4, duration: 0.6 }}
-              className="text-center mt-20 pt-10"
-              style={{ borderTop: '1px solid rgba(139,42,62,0.1)' }}
-            >
-              <div className="flex items-center justify-center gap-2 mb-3">
-                <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4">
-                  <path d="M8 3Q5 0 5 3Q5 6 8 9Q11 6 11 3Q11 0 8 3" fill="#8b2a3e" />
-                </svg>
-              </div>
-              <p className="text-text-muted text-sm mb-1">Made with love</p>
-              <p className="font-[family-name:var(--font-playfair)] italic" style={{ color: '#8b2a3e' }}>
-                Digital Gifts
-              </p>
-              <p className="font-[family-name:var(--font-dm-sans)] text-text-muted text-xs mb-6 mt-1">
-                Inspired by my Ex. 💔
-              </p>
-              <Link href="/build">
-                <Button variant="outline" size="sm">Send your own gift</Button>
-              </Link>
-            </motion.footer>
+                <GiftArrangement
+                  items={gift.items}
+                  giftId={id}
+                  fromName={gift.gift.from_name}
+                  toName={gift.gift.to_name}
+                />
+
+                <div className="mt-5 flex flex-col items-center gap-2">
+                  {gift.gift.message && (
+                    <Button variant="outline" size="sm" onClick={() => setStage('letter')}>
+                      Read the letter again
+                    </Button>
+                  )}
+                  <p className="font-[family-name:var(--font-playfair)] italic text-sm text-text-muted mt-1">
+                    Made with love · Digital Gifts
+                  </p>
+                  <Link href="/build">
+                    <Button variant="ghost" size="sm">Send your own gift</Button>
+                  </Link>
+                </div>
+              </motion.div>
+            )}
           </div>
         </>
       )}
