@@ -54,37 +54,34 @@ interface StepCustomizeProps {
 
 const typeLabels: Record<GiftType, string> = {
   flower: 'Flowers',
-  sweets: 'Sweet Treats',
-  teddy: 'Teddy Bear',
+  sweets: 'Sweets',
+  teddy: 'Teddy bear',
   magical: 'Magical',
-  letter: 'Love Letter',
-  memory: 'Memories',
+  letter: 'Letter',
+  memory: 'Photos',
 }
 
-/* ── MultiChip: slightly smaller on mobile, full size on sm+ ── */
+/* ── MultiChip: an unframed illustration; a soft glow and a check mark show it is selected ── */
 function MultiChip({ imageSrc, label, selected, onClick }: {
   imageSrc: string; label: string; selected: boolean; onClick: () => void
 }) {
   return (
-    <button onClick={onClick}
-      className={`relative flex flex-col items-center gap-1.5 sm:gap-2 p-2 sm:p-3 rounded-2xl bg-white w-[90px] sm:w-[110px]
-        transition-all duration-200
-        ${selected
-          ? 'shadow-[0_0_0_2px_#8b2a3e,0_6px_16px_rgba(139,42,62,0.2)] scale-105'
-          : 'opacity-75 shadow-sm hover:opacity-100 hover:-translate-y-1 hover:shadow-md'
-        }`}>
-      {selected && (
-        <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-rose flex items-center justify-center z-10">
-          <svg viewBox="0 0 16 16" fill="none" className="w-2.5 h-2.5">
-            <path d="M3 8L6.5 11.5L13 4.5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </div>
-      )}
-      {/* Image slightly smaller on mobile */}
-      <div className="w-12 h-12 sm:w-16 sm:h-16">
-        <Image src={imageSrc} alt={label} width={64} height={64} className="w-full h-full object-contain" />
+    <button type="button" onClick={onClick}
+      className={`group relative flex w-[104px] sm:w-[132px] flex-col items-center gap-1 cursor-pointer transition-all duration-200
+        ${selected ? '' : 'opacity-70 hover:opacity-100 hover:-translate-y-1'}`}>
+      <div className="relative w-full aspect-square">
+        <div className={`absolute inset-0 bg-[radial-gradient(circle,rgba(139,42,62,0.16),transparent_65%)] transition-opacity duration-300 ${selected ? 'opacity-100' : 'opacity-0'}`} />
+        <Image src={imageSrc} alt={label} width={160} height={160}
+          className={`relative w-full h-full object-contain drop-shadow-md transition-transform duration-200 ${selected ? 'scale-105' : ''}`} />
+        {selected && (
+          <div className="absolute top-1 right-1 w-5 h-5 rounded-full bg-rose flex items-center justify-center z-10 shadow">
+            <svg viewBox="0 0 16 16" fill="none" className="w-3 h-3">
+              <path d="M3 8L6.5 11.5L13 4.5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+        )}
       </div>
-      <span className="text-xs font-[family-name:var(--font-dm-sans)] text-text capitalize text-center leading-tight">
+      <span className={`text-xs sm:text-sm font-[family-name:var(--font-dm-sans)] capitalize text-center leading-tight ${selected ? 'text-rose font-medium' : 'text-text'}`}>
         {label}
       </span>
     </button>
@@ -96,7 +93,7 @@ function RomanticInput({ value, onChange, placeholder }: {
 }) {
   return (
     <input type="text" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
-      className="w-full px-4 sm:px-5 py-3 bg-cream border-2 border-blush/30 rounded-2xl text-text placeholder:text-text-muted/50 placeholder:italic focus:outline-none focus:border-rose transition-all font-[family-name:var(--font-playfair)] italic text-sm" />
+      className="w-full px-1 py-2 bg-transparent border-0 border-b-2 border-rose/30 rounded-none text-text placeholder:text-text-muted/50 placeholder:italic focus:outline-none focus:border-rose transition-colors font-[family-name:var(--font-playfair)] italic text-base" />
   )
 }
 
@@ -125,7 +122,7 @@ function FlowerOptions({ content, onChange }: { content: Record<string, any>; on
     <div className="space-y-4">
       <div>
         <Label>Bouquet Style</Label>
-        <p className="text-[10px] text-text-muted mb-3 font-[family-name:var(--font-dm-sans)]">Pick one or mix multiple flowers!</p>
+        <p className="text-[10px] text-text-muted mb-3 font-[family-name:var(--font-dm-sans)]">Pick one or mix several.</p>
         <div className="flex flex-wrap gap-2 sm:gap-3">
           {['rose', 'peony', 'wildflower', 'tulip', 'sunflower'].map((s) => (
             <MultiChip key={s} imageSrc={flowerImages[s]} label={s} selected={selected.includes(s)} onClick={() => toggle(s)} />
@@ -134,8 +131,8 @@ function FlowerOptions({ content, onChange }: { content: Record<string, any>; on
         <MixSummary items={selected} />
       </div>
       <div>
-        <Label>Bouquet Note</Label>
-        <RomanticInput value={content.note || ''} onChange={(v) => onChange({ ...content, styles: selected, note: v })} placeholder="A little note for the bouquet..." />
+        <Label>Note</Label>
+        <RomanticInput value={content.note || ''} onChange={(v) => onChange({ ...content, styles: selected, note: v })} placeholder="A short note to go with the flowers" />
       </div>
     </div>
   )
@@ -152,7 +149,7 @@ function SweetsOptions({ content, onChange }: { content: Record<string, any>; on
     <div className="space-y-4">
       <div>
         <Label>Sweet Type</Label>
-        <p className="text-[10px] text-text-muted mb-3 font-[family-name:var(--font-dm-sans)]">Mix and match your treats!</p>
+        <p className="text-[10px] text-text-muted mb-3 font-[family-name:var(--font-dm-sans)]">Pick as many as you like.</p>
         <div className="flex flex-wrap gap-2 sm:gap-3">
           {['chocolate box', 'cupcakes', 'macarons', 'cookie jar', 'cake'].map((t) => (
             <MultiChip key={t} imageSrc={sweetImages[t]} label={t} selected={selected.includes(t)} onClick={() => toggle(t)} />
@@ -161,8 +158,8 @@ function SweetsOptions({ content, onChange }: { content: Record<string, any>; on
         <MixSummary items={selected} />
       </div>
       <div>
-        <Label>Sweet Message</Label>
-        <RomanticInput value={content.message || ''} onChange={(v) => onChange({ ...content, types: selected, message: v })} placeholder="A sweet message..." />
+        <Label>Message</Label>
+        <RomanticInput value={content.message || ''} onChange={(v) => onChange({ ...content, types: selected, message: v })} placeholder="What should the card say?" />
       </div>
     </div>
   )
@@ -179,7 +176,7 @@ function TeddyOptions({ content, onChange }: { content: Record<string, any>; onC
     <div className="space-y-4">
       <div>
         <Label>Holding</Label>
-        <p className="text-[10px] text-text-muted mb-3 font-[family-name:var(--font-dm-sans)]">Teddy can hold multiple things!</p>
+        <p className="text-[10px] text-text-muted mb-3 font-[family-name:var(--font-dm-sans)]">Pick what the teddy holds. You can choose more than one.</p>
         <div className="flex flex-wrap gap-2 sm:gap-3">
           {['heart', 'flower', 'balloon', 'gift box'].map((h) => (
             <MultiChip key={h} imageSrc={holdingImages[h]} label={h} selected={selected.includes(h)} onClick={() => toggle(h)} />
@@ -188,8 +185,8 @@ function TeddyOptions({ content, onChange }: { content: Record<string, any>; onC
         <MixSummary items={selected} />
       </div>
       <div>
-        <Label>Tag Message</Label>
-        <RomanticInput value={content.message || ''} onChange={(v) => onChange({ ...content, holdings: selected, message: v })} placeholder="Message on the tag..." />
+        <Label>Message</Label>
+        <RomanticInput value={content.message || ''} onChange={(v) => onChange({ ...content, holdings: selected, message: v })} placeholder="What should the tag say?" />
       </div>
     </div>
   )
@@ -206,7 +203,7 @@ function MagicalOptions({ content, onChange }: { content: Record<string, any>; o
     <div className="space-y-4">
       <div>
         <Label>Magical Type</Label>
-        <p className="text-[10px] text-text-muted mb-3 font-[family-name:var(--font-dm-sans)]">Add multiple magical items!</p>
+        <p className="text-[10px] text-text-muted mb-3 font-[family-name:var(--font-dm-sans)]">Pick one or more.</p>
         <div className="flex flex-wrap gap-2 sm:gap-3">
           {['snow globe', 'floating balloons', 'wishing lantern', 'jar of stars'].map((t) => (
             <MultiChip key={t} imageSrc={magicalImages[t]} label={t} selected={selected.includes(t)} onClick={() => toggle(t)} />
@@ -215,8 +212,8 @@ function MagicalOptions({ content, onChange }: { content: Record<string, any>; o
         <MixSummary items={selected} />
       </div>
       <div>
-        <Label>Wish or Message</Label>
-        <RomanticInput value={content.message || ''} onChange={(v) => onChange({ ...content, types: selected, message: v })} placeholder="Make a wish..." />
+        <Label>Message</Label>
+        <RomanticInput value={content.message || ''} onChange={(v) => onChange({ ...content, types: selected, message: v })} placeholder="Write a wish or a message" />
       </div>
     </div>
   )
@@ -255,7 +252,7 @@ function LetterOptions({ content, onChange, toName, fromName }: {
             Dear {toName || 'Someone Special'},
           </p>
           <textarea value={content.text || ''} onChange={(e) => onChange({ ...content, styles: selectedStyle ? [selectedStyle] : [], text: e.target.value })}
-            placeholder="Write your heart out..."
+            placeholder="Write your letter"
             className="w-full bg-transparent border-none resize-none font-[family-name:var(--font-playfair)] italic text-sm leading-[28px] placeholder:text-text-muted/40 focus:outline-none focus:ring-0"
             style={{ color: activeColor, lineHeight: '28px', minHeight: '120px' }} />
           <div className="text-right">
@@ -290,7 +287,7 @@ function MemoryOptions({ content, onChange, photos, captions, onPhotoChange }: {
       {/* Layout — single select */}
       <div>
         <Label>Layout Style</Label>
-        <p className="text-[10px] text-text-muted mb-3 font-[family-name:var(--font-dm-sans)]">Pick one layout style</p>
+        <p className="text-[10px] text-text-muted mb-3 font-[family-name:var(--font-dm-sans)]">Pick a layout</p>
         <div className="flex flex-wrap gap-2 sm:gap-3">
           {['polaroid wall', 'photo strip', 'scrapbook page', 'memory jar'].map((l) => (
             <MultiChip key={l} imageSrc={memoryLayoutImages[l]} label={l}
@@ -307,7 +304,7 @@ function MemoryOptions({ content, onChange, photos, captions, onPhotoChange }: {
       {/* Title */}
       <div>
         <Label>Title</Label>
-        <RomanticInput value={content.title || ''} onChange={(v) => onChange({ ...content, layouts: selectedLayout ? [selectedLayout] : [], title: v })} placeholder="Our Memories..." />
+        <RomanticInput value={content.title || ''} onChange={(v) => onChange({ ...content, layouts: selectedLayout ? [selectedLayout] : [], title: v })} placeholder="For example: Summer 2025" />
       </div>
 
       {/* Photos */}
@@ -342,7 +339,7 @@ function MemoryOptions({ content, onChange, photos, captions, onPhotoChange }: {
                 const available = MAX_PHOTOS - photos.length
                 const toAdd = incoming.slice(0, available)
                 if (incoming.length > available) {
-                  alert(`Only ${available} more photo${available === 1 ? '' : 's'} can be added (max ${MAX_PHOTOS} total).`)
+                  alert(`You can add ${available} more photo${available === 1 ? '' : 's'}. The limit is ${MAX_PHOTOS}.`)
                 }
                 const combined = [...photos, ...toAdd]
                 const newCaptions = [...captions, ...Array(toAdd.length).fill('')]
@@ -401,7 +398,7 @@ function MemoryOptions({ content, onChange, photos, captions, onPhotoChange }: {
                       c[i] = e.target.value
                       onPhotoChange(photos, c)
                     }}
-                    placeholder="✦ caption"
+                    placeholder="Caption"
                     className="absolute bottom-1.5 left-1 right-1 text-center text-[10px] bg-transparent border-none focus:outline-none font-[family-name:var(--font-playfair)] italic"
                     style={{
                       color: captions[i] ? '#2a1a1f' : 'rgba(139,42,62,0.4)',
@@ -431,18 +428,17 @@ export default function StepCustomize({ items, onUpdateItem, onUpdatePhotos, onR
         Customize your gifts
       </h2>
       <p className="font-[family-name:var(--font-playfair)] italic text-sm text-text-muted mb-3">
-        Make each gift uniquely special
+        Choose the details for each one.
       </p>
 
       {/* Tabs */}
       {items.length > 0 && (
-        <div className="flex gap-2 mb-3 overflow-x-auto pb-1 flex-wrap">
+        <div className="flex gap-x-5 gap-y-1 mb-4 overflow-x-auto pb-1 flex-wrap">
           {items.map((item, i) => (
             <div key={item.id} className="flex items-center gap-1">
               <button onClick={() => setActiveTab(i)}
-                className={`px-3 py-1.5 rounded-xl transition-all whitespace-nowrap font-[family-name:var(--font-dm-sans)] text-xs
-                  ${activeTab === i ? 'text-white shadow-md' : 'bg-cream text-text hover:bg-blush/50'}`}
-                style={activeTab === i ? { backgroundColor: '#8b2a3e' } : {}}>
+                className={`px-1 py-1.5 border-b-2 transition-all whitespace-nowrap font-[family-name:var(--font-dm-sans)] text-sm cursor-pointer
+                  ${activeTab === i ? 'border-rose text-rose font-medium' : 'border-transparent text-text-muted hover:text-text'}`}>
                 {typeLabels[item.type]}
               </button>
               {onRemoveItem && (
@@ -473,7 +469,7 @@ export default function StepCustomize({ items, onUpdateItem, onUpdatePhotos, onR
           <p className="text-xs mb-2 font-[family-name:var(--font-dm-sans)]" style={{ color: '#8b2a3e' }}>
             {currentItem.type === 'letter' && ((currentItem.content?.styles as string[]) || []).length > 0
               ? '✦ Write your letter to continue'
-              : '✦ Pick at least one option to continue'
+              : 'Choose at least one option to continue'
             }
           </p>
         ) : null
@@ -481,7 +477,7 @@ export default function StepCustomize({ items, onUpdateItem, onUpdatePhotos, onR
 
       {/* Responsive padding: p-3 on mobile, p-5 on sm+ */}
       <motion.div key={currentItem.id} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }}
-        className="bg-white rounded-2xl p-3 sm:p-5 shadow-md">
+        className="pt-1">
         {currentItem.type === 'flower' && <FlowerOptions content={currentItem.content} onChange={(c) => onUpdateItem(currentItem.id, c)} />}
         {currentItem.type === 'sweets' && <SweetsOptions content={currentItem.content} onChange={(c) => onUpdateItem(currentItem.id, c)} />}
         {currentItem.type === 'teddy' && <TeddyOptions content={currentItem.content} onChange={(c) => onUpdateItem(currentItem.id, c)} />}

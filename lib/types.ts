@@ -49,58 +49,6 @@ export interface FullGift {
 }
 
 /*
- * ── Content interfaces for each gift type ──
- * These define the structure of the `content` field for each gift type.
- */
-
-/** Content structure for flower gifts */
-export interface FlowerContent {
-  style: 'rose' | 'peony' | 'wildflower' | 'tulip' | 'sunflower'
-  styles?: string[]
-  color: 'pink' | 'red' | 'white' | 'mixed' | 'purple'
-  note: string
-}
-
-/** Content structure for sweets gifts */
-export interface SweetsContent {
-  type: 'chocolate box' | 'cupcakes' | 'macarons' | 'cookie jar' | 'cake'
-  types?: string[]
-  ribbonColor: string
-  message: string
-}
-
-/** Content structure for teddy bear gifts */
-export interface TeddyContent {
-  color: 'brown' | 'white' | 'pink' | 'grey'
-  holding: 'heart' | 'flower' | 'balloon' | 'gift box'
-  holdings?: string[]
-  message: string
-}
-
-/** Content structure for magical gifts */
-export interface MagicalContent {
-  type: 'snow globe' | 'floating balloons' | 'wishing lantern' | 'jar of stars'
-  types?: string[]
-  colorTheme: string
-  message: string
-}
-
-/** Content structure for letter gifts */
-export interface LetterContent {
-  style: 'parchment scroll' | 'sealed envelope' | 'open letter'
-  styles?: string[]
-  text: string
-  inkColor: 'black' | 'rose' | 'blue' | 'gold'
-}
-
-/** Content structure for memory gifts */
-export interface MemoryContent {
-  layout: 'polaroid wall' | 'photo strip' | 'scrapbook page' | 'memory jar'
-  layouts?: string[]
-  title: string
-}
-
-/*
  * ── Builder state types ──
  * Used in the gift builder wizard for managing form state.
  */
@@ -114,14 +62,4 @@ export interface BuilderGiftItem {
   photos?: File[]
   /** Captions corresponding to each photo by index */
   photoCaptions?: string[]
-}
-
-/** Complete builder state for the multi-step wizard */
-export interface BuilderState {
-  step: number
-  selectedTypes: GiftType[]
-  items: BuilderGiftItem[]
-  toName: string
-  fromName: string
-  message: string
 }

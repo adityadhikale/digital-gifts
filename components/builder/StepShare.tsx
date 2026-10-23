@@ -36,7 +36,7 @@ export default function StepShare({ giftLink, onGenerate, isGenerating }: StepSh
   /** Open WhatsApp with pre-filled message */
   const handleWhatsApp = useCallback(() => {
     if (!giftLink) return
-    const text = encodeURIComponent(`I made something special for you! Open your gift here: ${giftLink}`)
+    const text = encodeURIComponent(`I made you a gift. Open it here: ${giftLink}`)
     window.open(`https://wa.me/?text=${text}`, '_blank')
   }, [giftLink])
 
@@ -51,10 +51,10 @@ export default function StepShare({ giftLink, onGenerate, isGenerating }: StepSh
     <div>
       {/* Slightly smaller heading on mobile */}
       <h2 className="font-[family-name:var(--font-playfair)] text-xl sm:text-2xl font-light italic text-text mb-2">
-        Share the magic
+        Get your link
       </h2>
       <p className="font-[family-name:var(--font-dancing)] text-lg text-text-muted mb-4 sm:mb-8">
-        Generate your unique gift link
+        This saves the gift and gives you a link to send.
       </p>
 
       {/* Pre-generation state - show generate button */}
@@ -108,10 +108,10 @@ export default function StepShare({ giftLink, onGenerate, isGenerating }: StepSh
           </motion.div>
 
           <p className="font-[family-name:var(--font-playfair)] text-lg sm:text-xl text-text mb-2">
-            Your gift is ready to be wrapped
+            Ready when you are
           </p>
           <p className="text-text-muted mb-5 sm:mb-8 text-sm sm:text-base">
-            Click below to generate your unique gift link
+            Create the link once you&apos;re happy with the preview.
           </p>
 
           <Button onClick={onGenerate} size="lg" disabled={isGenerating}>
@@ -125,7 +125,7 @@ export default function StepShare({ giftLink, onGenerate, isGenerating }: StepSh
                 Creating your gift...
               </span>
             ) : (
-              'Generate your gift link'
+              'Create link'
             )}
           </Button>
         </motion.div>
@@ -167,10 +167,10 @@ export default function StepShare({ giftLink, onGenerate, isGenerating }: StepSh
             </motion.div>
 
             <h3 className="font-[family-name:var(--font-playfair)] text-xl sm:text-2xl text-text mb-2">
-              Your gift is ready!
+              Your link is ready
             </h3>
             <p className="font-[family-name:var(--font-dancing)] text-lg text-rose mb-4 sm:mb-6">
-              Share this link with someone special
+              Send it to the person you made this for.
             </p>
 
             {/* Gift link display */}
@@ -187,7 +187,7 @@ export default function StepShare({ giftLink, onGenerate, isGenerating }: StepSh
                     <svg viewBox="0 0 20 20" fill="none" className="w-5 h-5">
                       <path d="M5 10 L8 13 L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    Copied!
+                    Copied
                   </span>
                 ) : (
                   <span className="flex items-center gap-2">

@@ -93,6 +93,9 @@ export default function BuildPage() {
   const [fromName, setFromName] = useState('')
   const [message, setMessage] = useState('')
 
+  // Which arrangement of the gifts the recipient will see (saved with the gift)
+  const [arrangement, setArrangement] = useState(0)
+
   // Generation state
   const [giftLink, setGiftLink] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
@@ -148,7 +151,7 @@ export default function BuildPage() {
   const handleGenerate = useCallback(async () => {
     setIsGenerating(true)
     try {
-      const itemsToSend = items.map((item) => ({ type: item.type, content: item.content }))
+      const itemsToSend = items.map((item) => ({ type: item.type, content: { ...item.content, arrangement } }))
       const response = await fetch('/api/gifts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -183,11 +186,11 @@ export default function BuildPage() {
       }
     } catch (error) {
       console.error('Error generating gift:', error)
-      alert(`Error creating gift: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      alert(`Couldn't create the gift: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsGenerating(false)
     }
-  }, [items, fromName, toName, message])
+  }, [items, fromName, toName, message, arrangement])
 
   /**
    * Check if the user can proceed to the next step.
@@ -331,7 +334,7 @@ export default function BuildPage() {
                 <Button variant="outline" onClick={() => setStep(step - 1)}>Back</Button>
               )}
               <Button onClick={() => setStep(step + 1)} disabled={!canProceed()}>
-                {step === 2 ? 'Review & Share' : 'Next'}
+                {step === 2 ? 'Finish' : 'Next'}
               </Button>
 
               {/* Preview toggle — only visible on mobile/tablet */}
@@ -377,6 +380,8 @@ export default function BuildPage() {
             toName={toName}
             fromName={fromName}
             message={message}
+            arrangement={arrangement}
+            onArrangementChange={setArrangement}
           />
         </div>
       </div>
