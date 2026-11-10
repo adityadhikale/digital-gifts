@@ -1,67 +1,83 @@
 /**
- * Reusable Button component with multiple variants and sizes.
- * Includes hover and tap animations via Framer Motion.
+ * Button / link-button. Pill shaped; renders a Next <Link> when given an href so we never
+ * nest a <button> inside an <a>.
  */
 
-'use client'
+import Link from 'next/link'
+import type { ComponentPropsWithoutRef } from 'react'
 
-import { ReactNode } from 'react'
-import { motion, HTMLMotionProps } from 'framer-motion'
+type Variant = 'primary' | 'accent' | 'outline' | 'ghost' | 'light'
+type Size = 'sm' | 'md' | 'lg'
 
-/** Available button style variants */
-type ButtonVariant = 'primary' | 'outline' | 'ghost'
-
-/** Available button size presets */
-type ButtonSize = 'sm' | 'md' | 'lg'
-
-interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
-  variant?: ButtonVariant
-  size?: ButtonSize
-  children: ReactNode
+type ButtonProps = ComponentPropsWithoutRef<'button'> & {
+  variant?: Variant
+  size?: Size
+  /** Show a trailing arrow */
+  arrow?: boolean
+  /** Renders a link instead of a button */
+  href?: string
+  target?: string
+  rel?: string
 }
 
-/** Base styles applied to all buttons */
-const BASE_STYLES =
-  'inline-flex items-center justify-center rounded-full font-[family-name:var(--font-dm-sans)] font-medium transition-all duration-200 ease-out cursor-pointer relative overflow-hidden'
-
-/** Variant-specific styles */
-const VARIANT_STYLES: Record<ButtonVariant, string> = {
-  primary:
-    'bg-gradient-to-r from-rose to-rose-dark text-white shadow-lg shadow-rose/25 hover:shadow-xl hover:shadow-rose/30 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0',
-  outline:
-    'border-2 border-rose text-rose bg-transparent hover:bg-rose/5 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]',
-  ghost:
-    'text-text-muted hover:text-text hover:bg-blush/50 active:scale-[0.98]',
+const variants: Record<Variant, string> = {
+  primary: 'bg-ink text-paper hover:bg-cobalt',
+  accent: 'bg-butter text-ink hover:bg-white',
+  light: 'bg-paper text-ink hover:bg-butter',
+  outline: 'border-2 border-ink text-ink hover:bg-ink hover:text-paper',
+  ghost: 'text-ink hover:bg-ink/10',
 }
 
-/** Size-specific styles */
-const SIZE_STYLES: Record<ButtonSize, string> = {
-  sm: 'px-5 py-2.5 text-sm tracking-wide',
-  md: 'px-7 py-3.5 text-base',
-  lg: 'px-9 py-4 text-lg',
+const sizes: Record<Size, string> = {
+  sm: 'h-10 px-4 text-sm gap-2',
+  md: 'h-12 px-6 text-base gap-2.5',
+  lg: 'h-14 px-8 text-lg gap-3',
 }
 
-/**
- * Animated button component with customizable variants and sizes.
- * Uses Framer Motion for hover/tap animations.
- */
+const base =
+  'inline-flex items-center justify-center rounded-full font-semibold whitespace-nowrap select-none ' +
+  'transition-[background-color,color,transform,opacity] duration-200 ease-[var(--ease-out-quint)] ' +
+  'active:scale-[0.97] disabled:opacity-40 disabled:pointer-events-none'
+
+function Arrow() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4 shrink-0" aria-hidden="true">
+      <path d="M4 10h11m0 0-4.5-4.5M15 10l-4.5 4.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 export default function Button({
   variant = 'primary',
   size = 'md',
-  children,
   className = '',
-  disabled,
-  ...props
+  children,
+  arrow,
+  href,
+  target,
+  rel,
+  type = 'button',
+  ...rest
 }: ButtonProps) {
-  return (
-    <motion.button
-      whileHover={disabled ? undefined : { scale: 1.02 }}
-      whileTap={disabled ? undefined : { scale: 0.98 }}
-      className={`${BASE_STYLES} ${VARIANT_STYLES[variant]} ${SIZE_STYLES[size]} ${className}`}
-      disabled={disabled}
-      {...props}
-    >
+  const cls = `${base} ${variants[variant]} ${sizes[size]} ${className}`
+  const content = (
+    <>
       {children}
-    </motion.button>
+      {arrow && <Arrow />}
+    </>
+  )
+
+  if (href) {
+    return (
+      <Link href={href} target={target} rel={rel} className={cls} aria-label={rest['aria-label']} onClick={rest.onClick as never}>
+        {content}
+      </Link>
+    )
+  }
+
+  return (
+    <button type={type} className={cls} {...rest}>
+      {content}
+    </button>
   )
 }

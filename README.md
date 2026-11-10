@@ -150,24 +150,21 @@ digitalgifts/
 │   ├── layout.tsx
 │   └── page.tsx               # Landing page
 ├── 📂 components/
-│   ├── 📂 builder/            # Builder wizard components
-│   │   ├── StepPicker.tsx
-│   │   ├── StepCustomize.tsx
-│   │   ├── StepMessage.tsx
-│   │   ├── StepShare.tsx
-│   │   └── LivePreview.tsx
-│   ├── 📂 reveal/             # Gift reveal components
-│   │   ├── RibbonAnimation.tsx
-│   │   ├── FloatingLetter.tsx
-│   │   ├── GiftGrid.tsx
-│   │   └── GiftModal.tsx
-│   └── 📂 ui/                 # Reusable UI components
+│   ├── 📂 builder/            # Builder wizard (StepPicker, StepCustomize, OptionTile,
+│   │                          #   PhotoPicker, StepMessage, StepShare, LivePreview)
+│   ├── 📂 reveal/             # Gift reveal (UnwrapScreen, LetterCard, GiftArrangement,
+│   │                          #   GiftModal, MemoryView)
+│   ├── 📂 landing/            # Landing hero art
+│   └── 📂 ui/                 # Button, Field, Sheet, Logo, Art
 ├── 📂 lib/
+│   ├── giftCatalog.ts         # Gift types, options, colours, illustration paths
+│   ├── builder.ts             # Default content + step validation
+│   ├── image.ts               # In-browser photo shrinking before upload
 │   ├── supabase.ts            # Supabase client
 │   ├── types.ts               # TypeScript interfaces
 │   └── nanoid.ts              # ID generation
 └── 📂 public/
-    ├── 📂 illustrations/      # Gift category illustrations
+    ├── 📂 illustrations/      # Flat SVG gift illustrations
     └── 📂 screenshots/        # README screenshots ← add yours here
 ```
 

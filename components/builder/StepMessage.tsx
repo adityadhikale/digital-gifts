@@ -1,7 +1,6 @@
 /**
- * Step 3 of the gift builder - Personal message form.
- * The form is the letter itself: the sender fills in the greeting, the message and the signature
- * directly on the card the recipient will read.
+ * Step 3 — write the tag. The form is the tag itself: To, message, From, on kraft paper,
+ * so what the sender types is what the recipient reads.
  */
 
 'use client'
@@ -17,71 +16,59 @@ interface StepMessageProps {
   onMessageChange: (value: string) => void
 }
 
-/** Underlined name field that sits inline on the card */
-const nameField =
-  'bg-transparent border-0 border-b-2 border-rose/30 focus:border-rose focus:outline-none ' +
-  'placeholder:text-text-muted/50 placeholder:italic transition-colors min-w-0'
+const hand =
+  'w-full border-0 border-b-2 border-ink/30 bg-transparent px-1 font-hand text-3xl leading-tight text-ink ' +
+  'placeholder:text-ink/40 focus:border-ink focus:outline-none focus:ring-0 min-w-0'
 
-export default function StepMessage({
-  toName,
-  fromName,
-  message,
-  onToNameChange,
-  onFromNameChange,
-  onMessageChange,
-}: StepMessageProps) {
+export default function StepMessage({ toName, fromName, message, onToNameChange, onFromNameChange, onMessageChange }: StepMessageProps) {
   return (
-    <div>
-      <h2 className="font-[family-name:var(--font-playfair)] text-xl sm:text-2xl font-light italic text-text mb-2">
-        Write the letter
-      </h2>
-      <p className="text-sm text-text-muted mb-4 sm:mb-6">
-        They read this before they see the gifts. Both names are required. The message is optional.
-      </p>
+    <section aria-labelledby="tag-h">
+      <h1 id="tag-h" className="text-3xl sm:text-4xl">Write the tag</h1>
+      <p className="mt-2 text-base text-ink-soft">They read this before they see the gifts. Both names are needed. The message is optional.</p>
 
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="rounded-2xl border border-rose/25 bg-[#fffaf3] p-5 sm:p-8 shadow-xl"
+        initial={{ opacity: 0, y: 14, rotate: -1 }}
+        animate={{ opacity: 1, y: 0, rotate: -0.6 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="tag-hole relative mt-8 rounded-[1.5rem] border-2 border-ink bg-kraft px-5 pb-6 pt-12 sm:px-8"
       >
-        {/* Greeting */}
-        <label className="flex items-baseline gap-2 font-[family-name:var(--font-playfair)] italic text-xl sm:text-2xl text-text mb-4">
-          <span>Dear</span>
+        <label className="block">
+          <span className="text-sm font-semibold uppercase tracking-wider text-ink/70">To</span>
           <input
             type="text"
             value={toName}
             onChange={(e) => onToNameChange(e.target.value)}
             placeholder="Their name"
-            aria-label="Their name"
-            className={`${nameField} flex-1 px-1 text-rose`}
+            autoComplete="off"
+            maxLength={60}
+            className={hand}
           />
-          <span>,</span>
         </label>
 
-        {/* Message */}
-        <textarea
-          value={message}
-          onChange={(e) => onMessageChange(e.target.value)}
-          placeholder="Write your message"
-          aria-label="Message"
-          rows={8}
-          className="w-full resize-none bg-transparent font-[family-name:var(--font-playfair)] text-lg sm:text-xl leading-8 text-text placeholder:text-text-muted/50 placeholder:italic focus:outline-none"
-        />
+        <label className="mt-6 block">
+          <span className="text-sm font-semibold uppercase tracking-wider text-ink/70">Message</span>
+          <textarea
+            value={message}
+            onChange={(e) => onMessageChange(e.target.value)}
+            placeholder="Write your message"
+            rows={7}
+            className="mt-1 w-full resize-y rounded-xl border-2 border-ink/20 bg-paper/60 p-3 font-hand text-[1.7rem] leading-[1.15] text-ink placeholder:text-ink/40 focus:border-ink focus:outline-none focus:ring-4 focus:ring-butter/70"
+          />
+        </label>
 
-        {/* Signature */}
-        <div className="mt-4 flex flex-col items-end">
-          <p className="font-[family-name:var(--font-dancing)] text-xl text-text-muted">With love,</p>
+        <label className="mt-6 block">
+          <span className="text-sm font-semibold uppercase tracking-wider text-ink/70">From</span>
           <input
             type="text"
             value={fromName}
             onChange={(e) => onFromNameChange(e.target.value)}
             placeholder="Your name"
-            aria-label="Your name"
-            className={`${nameField} w-48 px-1 text-right font-[family-name:var(--font-dancing)] text-3xl text-rose`}
+            autoComplete="name"
+            maxLength={60}
+            className={hand}
           />
-        </div>
+        </label>
       </motion.div>
-    </div>
+    </section>
   )
 }
