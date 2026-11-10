@@ -1,97 +1,66 @@
 /**
- * Step 1 of the gift builder - Gift category picker.
- * Each category is shown as its illustration, with no box around it.
+ * Step 1 — pick what to send. Each category is a tissue-coloured tile; pick one or more.
  */
 
 'use client'
 
 import { motion } from 'framer-motion'
-import Image from 'next/image'
-import { GiftType } from '@/lib/types'
-import { categoryInfo } from '@/lib/giftCatalog'
+import Art from '@/components/ui/Art'
+import { GIFT_ORDER, categoryInfo, typeTheme } from '@/lib/giftCatalog'
+import type { GiftType } from '@/lib/types'
 
 interface StepPickerProps {
   selectedTypes: GiftType[]
   onToggle: (type: GiftType) => void
 }
 
-/** Categories in display order, with a one-line description */
-const CATEGORIES: { type: GiftType; name: string; description: string }[] = [
-  { type: 'flower',  name: 'Flowers',           description: "A bouquet that doesn't wilt" },
-  { type: 'sweets',  name: 'Sweets',            description: 'Cakes, cupcakes, chocolates' },
-  { type: 'teddy',   name: 'Teddy bear',        description: 'A teddy holding something' },
-  { type: 'magical', name: 'Something magical', description: 'Snow globes, lanterns, balloons' },
-  { type: 'letter',  name: 'Letter',            description: 'Your own words' },
-  { type: 'memory',  name: 'Photos',            description: 'Up to 6 of your photos' },
-]
-
 export default function StepPicker({ selectedTypes, onToggle }: StepPickerProps) {
   return (
-    <div className="m-2 sm:m-5">
-      <h2 className="font-[family-name:var(--font-playfair)] text-xl font-light italic text-text mb-2">
-        What do you want to send?
-      </h2>
-      <p className="font-[family-name:var(--font-playfair)] italic text-sm text-text-muted mb-4 sm:mb-6">
-        Pick one or more.
-      </p>
+    <section aria-labelledby="pick-h">
+      <h1 id="pick-h" className="text-3xl sm:text-4xl">What do you want to send?</h1>
+      <p className="mt-2 text-base text-ink-soft">Pick one or more. Tap again to take it out.</p>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-6">
-        {CATEGORIES.map((cat, index) => {
-          const isSelected = selectedTypes.includes(cat.type)
-
+      <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {GIFT_ORDER.map((type, index) => {
+          const on = selectedTypes.includes(type)
+          const t = typeTheme[type]
           return (
-            <motion.button
-              type="button"
-              key={cat.type}
-              aria-pressed={isSelected}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05, duration: 0.3 }}
-              whileHover={{ y: -4 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => onToggle(cat.type)}
-              className={`flex flex-col items-center text-center cursor-pointer transition-opacity duration-200 ${isSelected ? '' : 'opacity-75 hover:opacity-100'}`}
-            >
-              <div className="relative w-full max-w-[170px] aspect-square">
-                {/* Soft glow behind a selected illustration */}
-                <div className={`absolute inset-0 bg-[radial-gradient(circle,rgba(139,42,62,0.16),transparent_65%)] transition-opacity duration-300 ${isSelected ? 'opacity-100' : 'opacity-0'}`} />
-                <Image
-                  src={categoryInfo[cat.type].image}
-                  alt={cat.name}
-                  width={240}
-                  height={240}
-                  priority={index < 3}
-                  className={`relative w-full h-full object-contain drop-shadow-lg transition-transform duration-300 ${isSelected ? 'scale-105' : ''}`}
-                />
-                {isSelected && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute top-1 right-3 w-7 h-7 rounded-full flex items-center justify-center shadow-md z-10 bg-rose"
-                  >
-                    <svg viewBox="0 0 16 16" fill="none" className="w-3.5 h-3.5">
-                      <path d="M3 8L6.5 11.5L13 4.5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            <li key={type}>
+              <motion.button
+                type="button"
+                aria-pressed={on}
+                onClick={() => onToggle(type)}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.04, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                whileTap={{ scale: 0.97 }}
+                className={`${t.bg} ${t.text} relative flex h-full w-full flex-col items-center rounded-[1.5rem] border-2 p-3 text-center transition-[box-shadow,border-color,transform] duration-200 sm:p-5
+                  ${on ? 'border-ink shadow-[0_0_0_4px_var(--color-paper),0_0_0_7px_var(--color-ink)]' : 'border-ink/25 hover:border-ink hover:-translate-y-0.5'}`}
+              >
+                <span
+                  className={`absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-full border-2 border-ink transition-all duration-200 ${on ? 'scale-100 bg-ink' : 'scale-75 bg-white/60'}`}
+                  aria-hidden="true"
+                >
+                  {on && (
+                    <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none">
+                      <path d="m3 8.5 3.2 3.2L13 4.8" stroke="#f4f5ef" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                  </motion.div>
-                )}
-              </div>
-
-              <h3 className={`mt-1 font-[family-name:var(--font-dm-sans)] text-sm ${isSelected ? 'font-semibold text-rose' : 'font-medium text-text'}`}>
-                {cat.name}
-              </h3>
-              <p className="hidden sm:block font-[family-name:var(--font-dm-sans)] font-light text-text-muted text-xs leading-tight mt-0.5">
-                {cat.description}
-              </p>
-            </motion.button>
+                  )}
+                </span>
+                <Art src={categoryInfo[type].image} alt="" size={220} priority={index < 4} className="h-auto w-[58%] max-w-[120px]" />
+                <span className="mt-2 font-display text-lg font-bold leading-tight sm:text-xl">{t.name}</span>
+                <span className="mt-0.5 text-[0.8rem] leading-tight opacity-85 sm:text-sm">{t.blurb}</span>
+              </motion.button>
+            </li>
           )
         })}
-      </div>
+      </ul>
 
-      {selectedTypes.length > 0 && (
-        <p className="mt-6 text-xs font-[family-name:var(--font-dm-sans)] text-text-muted">
-          Selected ({selectedTypes.length}): {selectedTypes.map((t) => CATEGORIES.find((c) => c.type === t)?.name).join(', ')}. Click one to remove it.
-        </p>
-      )}
-    </div>
+      <p className="mt-6 min-h-6 text-base font-semibold" aria-live="polite">
+        {selectedTypes.length === 0
+          ? 'Nothing picked yet'
+          : `${selectedTypes.length} picked: ${selectedTypes.map((t) => typeTheme[t].name).join(', ')}`}
+      </p>
+    </section>
   )
 }

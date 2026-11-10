@@ -1,498 +1,187 @@
+/**
+ * Step 2 — fill each gift. One gift at a time, with a chip row showing which are done.
+ * Every gift type shares the same option grid; each adds its own text field (and memories add photos).
+ */
+
 'use client'
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import Image from 'next/image'
-import { GiftType, BuilderGiftItem } from '@/lib/types'
-
-const flowerImages: Record<string, string> = {
-  rose: '/illustrations/flowers/rose.png',
-  peony: '/illustrations/flowers/peony.png',
-  wildflower: '/illustrations/flowers/wildflower.png',
-  tulip: '/illustrations/flowers/tulip.png',
-  sunflower: '/illustrations/flowers/sunflower.png',
-}
-const sweetImages: Record<string, string> = {
-  'chocolate box': '/illustrations/sweets/chocolate-box.png',
-  cupcakes: '/illustrations/sweets/cupcakes.png',
-  macarons: '/illustrations/sweets/macarons.png',
-  'cookie jar': '/illustrations/sweets/cookie-jar.png',
-  cake: '/illustrations/sweets/cake.png',
-}
-const holdingImages: Record<string, string> = {
-  heart: '/illustrations/teddy/teddy-heart.png',
-  flower: '/illustrations/teddy/teddy-flower.png',
-  balloon: '/illustrations/teddy/teddy-balloon.png',
-  'gift box': '/illustrations/teddy/teddy-giftbox.png',
-}
-const magicalImages: Record<string, string> = {
-  'snow globe': '/illustrations/magical/snow-globe.png',
-  'floating balloons': '/illustrations/magical/balloons.png',
-  'wishing lantern': '/illustrations/magical/lantern.png',
-  'jar of stars': '/illustrations/magical/star-jar.png',
-}
-const letterStyleImages: Record<string, string> = {
-  'parchment scroll': '/illustrations/letters/scroll.png',
-  'sealed envelope': '/illustrations/letters/envelope.png',
-  'open letter': '/illustrations/letters/open-letter.png',
-}
-const memoryLayoutImages: Record<string, string> = {
-  'polaroid wall': '/illustrations/memories/polaroid-wall.png',
-  'photo strip': '/illustrations/memories/photo-strip.png',
-  'scrapbook page': '/illustrations/memories/scrapbook.png',
-  'memory jar': '/illustrations/memories/memory-jar.png',
-}
+import Art from '@/components/ui/Art'
+import Button from '@/components/ui/Button'
+import { FieldLabel, TextArea, TextInput } from '@/components/ui/Field'
+import OptionTile from './OptionTile'
+import PhotoPicker from './PhotoPicker'
+import { categoryInfo, optionImages, optionLists, typeTheme } from '@/lib/giftCatalog'
+import { isItemComplete, missingFor } from '@/lib/builder'
+import type { BuilderGiftItem, GiftItemContent, GiftType } from '@/lib/types'
 
 interface StepCustomizeProps {
   items: BuilderGiftItem[]
-  onUpdateItem: (id: string, content: Record<string, any>) => void
+  onUpdateItem: (id: string, content: GiftItemContent) => void
   onUpdatePhotos: (id: string, photos: File[], captions: string[]) => void
-  onRemoveItem?: (id: string) => void
+  onRemoveItem: (id: string) => void
   toName?: string
-  fromName?: string
 }
 
-const typeLabels: Record<GiftType, string> = {
-  flower: 'Flowers',
-  sweets: 'Sweets',
-  teddy: 'Teddy bear',
-  magical: 'Magical',
-  letter: 'Letter',
-  memory: 'Photos',
+/** [plural key, legacy singular key] — both are written so older readers keep working */
+const KEYS: Record<GiftType, [string, string]> = {
+  flower: ['styles', 'style'],
+  sweets: ['types', 'type'],
+  teddy: ['holdings', 'holding'],
+  magical: ['types', 'type'],
+  letter: ['styles', 'style'],
+  memory: ['layouts', 'layout'],
 }
 
-/* ── MultiChip: an unframed illustration; a soft glow and a check mark show it is selected ── */
-function MultiChip({ imageSrc, label, selected, onClick }: {
-  imageSrc: string; label: string; selected: boolean; onClick: () => void
-}) {
-  return (
-    <button type="button" onClick={onClick}
-      className={`group relative flex w-[104px] sm:w-[132px] flex-col items-center gap-1 cursor-pointer transition-all duration-200
-        ${selected ? '' : 'opacity-70 hover:opacity-100 hover:-translate-y-1'}`}>
-      <div className="relative w-full aspect-square">
-        <div className={`absolute inset-0 bg-[radial-gradient(circle,rgba(139,42,62,0.16),transparent_65%)] transition-opacity duration-300 ${selected ? 'opacity-100' : 'opacity-0'}`} />
-        <Image src={imageSrc} alt={label} width={160} height={160}
-          className={`relative w-full h-full object-contain drop-shadow-md transition-transform duration-200 ${selected ? 'scale-105' : ''}`} />
-        {selected && (
-          <div className="absolute top-1 right-1 w-5 h-5 rounded-full bg-rose flex items-center justify-center z-10 shadow">
-            <svg viewBox="0 0 16 16" fill="none" className="w-3 h-3">
-              <path d="M3 8L6.5 11.5L13 4.5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-        )}
-      </div>
-      <span className={`text-xs sm:text-sm font-[family-name:var(--font-dm-sans)] capitalize text-center leading-tight ${selected ? 'text-rose font-medium' : 'text-text'}`}>
-        {label}
-      </span>
-    </button>
-  )
+const SINGLE: GiftType[] = ['letter', 'memory']
+
+const COPY: Record<GiftType, { title: string; hint: string; field?: { key: string; label: string; placeholder: string; long?: boolean } }> = {
+  flower: { title: 'Bouquet', hint: 'Pick one or mix several.', field: { key: 'note', label: 'Note', placeholder: 'A short note to go with the flowers' } },
+  sweets: { title: 'Sweet treats', hint: 'Pick as many as you like.', field: { key: 'message', label: 'Card message', placeholder: 'What should the card say?' } },
+  teddy: { title: 'What the teddy holds', hint: 'Pick one or more.', field: { key: 'message', label: 'Tag message', placeholder: 'What should the tag say?' } },
+  magical: { title: 'Something magical', hint: 'Pick one or more.', field: { key: 'message', label: 'Wish or message', placeholder: 'Write a wish or a message' } },
+  letter: { title: 'Letter style', hint: 'Pick one.', field: { key: 'text', label: 'Your letter', placeholder: 'Write what you want to say', long: true } },
+  memory: { title: 'Photo layout', hint: 'Pick one.', field: { key: 'title', label: 'Title', placeholder: 'For example: Summer 2025' } },
 }
 
-function RomanticInput({ value, onChange, placeholder }: {
-  value: string; onChange: (v: string) => void; placeholder: string
-}) {
-  return (
-    <input type="text" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
-      className="w-full px-1 py-2 bg-transparent border-0 border-b-2 border-rose/30 rounded-none text-text placeholder:text-text-muted/50 placeholder:italic focus:outline-none focus:border-rose transition-colors font-[family-name:var(--font-playfair)] italic text-base" />
-  )
-}
-
-function Label({ children }: { children: React.ReactNode }) {
-  return <label className="block text-xs font-medium text-rose tracking-widest uppercase mb-2">{children}</label>
-}
-
-function MixSummary({ items }: { items: string[] }) {
+export default function StepCustomize({ items, onUpdateItem, onUpdatePhotos, onRemoveItem, toName }: StepCustomizeProps) {
+  const [active, setActive] = useState(0)
   if (items.length === 0) return null
-  const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
-  return (
-    <p className="mt-2 text-xs font-[family-name:var(--font-dm-sans)]" style={{ color: '#8b2a3e' }}>
-      Selected: {items.map(cap).join(' + ')}
-    </p>
-  )
-}
 
-// ── FLOWER ────────────────────────────────────────────────────────────────────
-function FlowerOptions({ content, onChange }: { content: Record<string, any>; onChange: (c: Record<string, any>) => void }) {
-  const selected: string[] = content.styles || (content.style ? [content.style] : [])
-  const toggle = (s: string) => {
-    const updated = selected.includes(s) ? selected.filter(x => x !== s) : [...selected, s]
-    onChange({ ...content, styles: updated, style: updated[0] || '' })
-  }
-  return (
-    <div className="space-y-4">
-      <div>
-        <Label>Bouquet Style</Label>
-        <p className="text-[10px] text-text-muted mb-3 font-[family-name:var(--font-dm-sans)]">Pick one or mix several.</p>
-        <div className="flex flex-wrap gap-2 sm:gap-3">
-          {['rose', 'peony', 'wildflower', 'tulip', 'sunflower'].map((s) => (
-            <MultiChip key={s} imageSrc={flowerImages[s]} label={s} selected={selected.includes(s)} onClick={() => toggle(s)} />
-          ))}
-        </div>
-        <MixSummary items={selected} />
-      </div>
-      <div>
-        <Label>Note</Label>
-        <RomanticInput value={content.note || ''} onChange={(v) => onChange({ ...content, styles: selected, note: v })} placeholder="A short note to go with the flowers" />
-      </div>
-    </div>
-  )
-}
+  const idx = Math.min(active, items.length - 1)
+  const item = items[idx]
+  const type = item.type
+  const theme = typeTheme[type]
+  const copy = COPY[type]
+  const [plural, singular] = KEYS[type]
+  const single = SINGLE.includes(type)
+  const selected: string[] = (item.content[plural] as string[] | undefined) || (item.content[singular] ? [item.content[singular] as string] : [])
+  const need = missingFor(item)
+  const doneCount = items.filter(isItemComplete).length
 
-// ── SWEETS ────────────────────────────────────────────────────────────────────
-function SweetsOptions({ content, onChange }: { content: Record<string, any>; onChange: (c: Record<string, any>) => void }) {
-  const selected: string[] = content.types || (content.type ? [content.type] : [])
-  const toggle = (t: string) => {
-    const updated = selected.includes(t) ? selected.filter(x => x !== t) : [...selected, t]
-    onChange({ ...content, types: updated, type: updated[0] || '' })
-  }
-  return (
-    <div className="space-y-4">
-      <div>
-        <Label>Sweet Type</Label>
-        <p className="text-[10px] text-text-muted mb-3 font-[family-name:var(--font-dm-sans)]">Pick as many as you like.</p>
-        <div className="flex flex-wrap gap-2 sm:gap-3">
-          {['chocolate box', 'cupcakes', 'macarons', 'cookie jar', 'cake'].map((t) => (
-            <MultiChip key={t} imageSrc={sweetImages[t]} label={t} selected={selected.includes(t)} onClick={() => toggle(t)} />
-          ))}
-        </div>
-        <MixSummary items={selected} />
-      </div>
-      <div>
-        <Label>Message</Label>
-        <RomanticInput value={content.message || ''} onChange={(v) => onChange({ ...content, types: selected, message: v })} placeholder="What should the card say?" />
-      </div>
-    </div>
-  )
-}
-
-// ── TEDDY ─────────────────────────────────────────────────────────────────────
-function TeddyOptions({ content, onChange }: { content: Record<string, any>; onChange: (c: Record<string, any>) => void }) {
-  const selected: string[] = content.holdings || (content.holding ? [content.holding] : [])
-  const toggle = (h: string) => {
-    const updated = selected.includes(h) ? selected.filter(x => x !== h) : [...selected, h]
-    onChange({ ...content, holdings: updated, holding: updated[0] || '' })
-  }
-  return (
-    <div className="space-y-4">
-      <div>
-        <Label>Holding</Label>
-        <p className="text-[10px] text-text-muted mb-3 font-[family-name:var(--font-dm-sans)]">Pick what the teddy holds. You can choose more than one.</p>
-        <div className="flex flex-wrap gap-2 sm:gap-3">
-          {['heart', 'flower', 'balloon', 'gift box'].map((h) => (
-            <MultiChip key={h} imageSrc={holdingImages[h]} label={h} selected={selected.includes(h)} onClick={() => toggle(h)} />
-          ))}
-        </div>
-        <MixSummary items={selected} />
-      </div>
-      <div>
-        <Label>Message</Label>
-        <RomanticInput value={content.message || ''} onChange={(v) => onChange({ ...content, holdings: selected, message: v })} placeholder="What should the tag say?" />
-      </div>
-    </div>
-  )
-}
-
-// ── MAGICAL ───────────────────────────────────────────────────────────────────
-function MagicalOptions({ content, onChange }: { content: Record<string, any>; onChange: (c: Record<string, any>) => void }) {
-  const selected: string[] = content.types || (content.type ? [content.type] : [])
-  const toggle = (t: string) => {
-    const updated = selected.includes(t) ? selected.filter(x => x !== t) : [...selected, t]
-    onChange({ ...content, types: updated, type: updated[0] || '' })
-  }
-  return (
-    <div className="space-y-4">
-      <div>
-        <Label>Magical Type</Label>
-        <p className="text-[10px] text-text-muted mb-3 font-[family-name:var(--font-dm-sans)]">Pick one or more.</p>
-        <div className="flex flex-wrap gap-2 sm:gap-3">
-          {['snow globe', 'floating balloons', 'wishing lantern', 'jar of stars'].map((t) => (
-            <MultiChip key={t} imageSrc={magicalImages[t]} label={t} selected={selected.includes(t)} onClick={() => toggle(t)} />
-          ))}
-        </div>
-        <MixSummary items={selected} />
-      </div>
-      <div>
-        <Label>Message</Label>
-        <RomanticInput value={content.message || ''} onChange={(v) => onChange({ ...content, types: selected, message: v })} placeholder="Write a wish or a message" />
-      </div>
-    </div>
-  )
-}
-
-// ── LETTER ────────────────────────────────────────────────────────────────────
-function LetterOptions({ content, onChange, toName, fromName }: {
-  content: Record<string, any>; onChange: (c: Record<string, any>) => void; toName?: string; fromName?: string
-}) {
-  const selectedStyle: string = content.styles?.[0] || content.style || ''
-  const selectStyle = (s: string) => {
-    onChange({ ...content, styles: [s], style: s })
-  }
-  const activeColor = '#2d1f24'
-  return (
-    <div className="space-y-4">
-      <div>
-        <Label>Style</Label>
-        <p className="text-[10px] text-text-muted mb-3 font-[family-name:var(--font-dm-sans)]">Pick one letter style</p>
-        <div className="flex flex-wrap gap-2 sm:gap-3">
-          {['parchment scroll', 'sealed envelope', 'open letter'].map((s) => (
-            <MultiChip key={s} imageSrc={letterStyleImages[s]} label={s} selected={selectedStyle === s} onClick={() => selectStyle(s)} />
-          ))}
-        </div>
-        {selectedStyle && (
-          <p className="mt-2 text-xs font-[family-name:var(--font-dm-sans)]" style={{ color: '#8b2a3e' }}>
-            Selected: {selectedStyle.charAt(0).toUpperCase() + selectedStyle.slice(1)}
-          </p>
-        )}
-      </div>
-      <div className="relative rounded-2xl overflow-hidden shadow-md"
-        style={{ background: 'radial-gradient(ellipse at 30% 20%, rgba(255,248,240,0.8) 0%, transparent 50%), #fdf3e3' }}>
-        <div className="relative p-4 sm:p-6"
-          style={{ backgroundImage: 'repeating-linear-gradient(transparent, transparent 27px, #e8d5c4 27px, #e8d5c4 28px)', backgroundPosition: '0 20px', minHeight: '220px' }}>
-          <p className="font-[family-name:var(--font-playfair)] italic text-base mb-1 leading-[28px]" style={{ color: activeColor }}>
-            Dear {toName || 'Someone Special'},
-          </p>
-          <textarea value={content.text || ''} onChange={(e) => onChange({ ...content, styles: selectedStyle ? [selectedStyle] : [], text: e.target.value })}
-            placeholder="Write your letter"
-            className="w-full bg-transparent border-none resize-none font-[family-name:var(--font-playfair)] italic text-sm leading-[28px] placeholder:text-text-muted/40 focus:outline-none focus:ring-0"
-            style={{ color: activeColor, lineHeight: '28px', minHeight: '120px' }} />
-          <div className="text-right">
-            <p className="font-[family-name:var(--font-playfair)] italic text-sm leading-[28px]" style={{ color: activeColor }}>
-              With love, {fromName || 'Me'}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── MEMORY — single layout, max 6 photos ─────────────────────────────────────
-function MemoryOptions({ content, onChange, photos, captions, onPhotoChange }: {
-  content: Record<string, any>; onChange: (c: Record<string, any>) => void
-  photos: File[]
-  captions: string[]
-  onPhotoChange: (files: File[], captions: string[]) => void
-}) {
-  const selectedLayout: string = content.layouts?.[0] || content.layout || ''
-  const selectLayout = (l: string) => {
-    onChange({ ...content, layouts: [l], layout: l })
+  const select = (opt: string) => {
+    const next = single ? [opt] : selected.includes(opt) ? selected.filter((x) => x !== opt) : [...selected, opt]
+    onUpdateItem(item.id, { ...item.content, [plural]: next, [singular]: next[0] || '' })
   }
 
-  const MAX_PHOTOS = 6
-  const remaining = MAX_PHOTOS - photos.length
-  const isFull = photos.length >= MAX_PHOTOS
-
   return (
-    <div className="space-y-4">
-      {/* Layout — single select */}
-      <div>
-        <Label>Layout Style</Label>
-        <p className="text-[10px] text-text-muted mb-3 font-[family-name:var(--font-dm-sans)]">Pick a layout</p>
-        <div className="flex flex-wrap gap-2 sm:gap-3">
-          {['polaroid wall', 'photo strip', 'scrapbook page', 'memory jar'].map((l) => (
-            <MultiChip key={l} imageSrc={memoryLayoutImages[l]} label={l}
-              selected={selectedLayout === l} onClick={() => selectLayout(l)} />
-          ))}
-        </div>
-        {selectedLayout && (
-          <p className="mt-2 text-xs font-[family-name:var(--font-dm-sans)]" style={{ color: '#8b2a3e' }}>
-            Selected: {selectedLayout.charAt(0).toUpperCase() + selectedLayout.slice(1)}
-          </p>
-        )}
-      </div>
+    <section aria-labelledby="fill-h">
+      <h1 id="fill-h" className="text-3xl sm:text-4xl">Fill each gift</h1>
+      <p className="mt-2 text-base text-ink-soft" aria-live="polite">{doneCount} of {items.length} ready</p>
 
-      {/* Title */}
-      <div>
-        <Label>Title</Label>
-        <RomanticInput value={content.title || ''} onChange={(v) => onChange({ ...content, layouts: selectedLayout ? [selectedLayout] : [], title: v })} placeholder="For example: Summer 2025" />
-      </div>
-
-      {/* Photos */}
-      <div>
-        <Label>Photos ({photos.length}/{MAX_PHOTOS})</Label>
-
-        {/* Upload area */}
-        {!isFull ? (
-          <label className={`block w-full p-4 sm:p-5 border-2 border-dashed rounded-2xl transition-all text-center
-            ${!selectedLayout
-              ? 'border-rose/20 bg-cream/70 cursor-not-allowed opacity-60'
-              : 'border-rose/30 bg-cream hover:bg-blush/20 hover:border-rose/50 cursor-pointer'
-            }`}>
-            <div className="flex flex-col items-center gap-2">
-              <svg viewBox="0 0 48 48" fill="none" className="w-9 h-9 opacity-50">
-                <rect x="8" y="12" width="32" height="24" rx="4" stroke="#8b2a3e" strokeWidth="2" fill="none" />
-                <circle cx="18" cy="22" r="4" stroke="#8b2a3e" strokeWidth="2" fill="none" />
-                <path d="M8 32 L18 24 L28 32 L36 26 L40 30" stroke="#8b2a3e" strokeWidth="2" fill="none" />
-              </svg>
-              <span className="text-text-muted text-sm">
-                {!selectedLayout
-                  ? 'Select a layout first'
-                  : `Click to upload · ${remaining} spot${remaining === 1 ? '' : 's'} left`
-                }
+      {/* One chip per gift */}
+      <div role="tablist" aria-label="Your gifts" className="no-scrollbar -mx-5 mt-6 flex gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+        {items.map((it, i) => {
+          const th = typeTheme[it.type]
+          const done = isItemComplete(it)
+          const on = i === idx
+          return (
+            <button
+              key={it.id}
+              role="tab"
+              aria-selected={on}
+              type="button"
+              onClick={() => setActive(i)}
+              className={`flex shrink-0 items-center gap-2 rounded-full border-2 py-1.5 pl-1.5 pr-4 text-sm font-semibold transition-colors ${on ? `${th.bg} ${th.text} border-ink` : 'border-ink/20 bg-white text-ink hover:border-ink/60'}`}
+            >
+              <span className={`grid h-8 w-8 place-items-center rounded-full ${on ? 'bg-white/45' : th.bg}`}>
+                {done ? (
+                  <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8" stroke={th.hex === '#2f46e6' && !on ? '#fff' : '#14182b'} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                ) : (
+                  <Art src={categoryInfo[it.type].image} alt="" size={32} className="h-6 w-6" />
+                )}
               </span>
-            </div>
-            <input type="file" accept="image/*" multiple className="hidden"
-              disabled={!selectedLayout}
-              onChange={(e) => {
-                if (!selectedLayout) return
-                const incoming = Array.from(e.target.files || [])
-                const available = MAX_PHOTOS - photos.length
-                const toAdd = incoming.slice(0, available)
-                if (incoming.length > available) {
-                  alert(`You can add ${available} more photo${available === 1 ? '' : 's'}. The limit is ${MAX_PHOTOS}.`)
-                }
-                const combined = [...photos, ...toAdd]
-                const newCaptions = [...captions, ...Array(toAdd.length).fill('')]
-                onPhotoChange(combined, newCaptions.slice(0, combined.length))
-                e.target.value = ''
-              }} />
-          </label>
-        ) : (
-          <div className="p-4 text-center text-sm rounded-2xl border font-[family-name:var(--font-dm-sans)]"
-            style={{ background: 'rgba(139,42,62,0.05)', borderColor: 'rgba(139,42,62,0.15)', color: '#8b2a3e' }}>
-            ✓ Maximum 6 photos added
+              {th.name}
+              {done && <span className="sr-only"> (ready)</span>}
+            </button>
+          )
+        })}
+      </div>
+
+      <motion.div
+        key={item.id}
+        role="tabpanel"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        className="mt-5 rounded-[1.75rem] border-2 border-ink bg-paper p-4 sm:p-6"
+      >
+        <div className={`-mx-4 -mt-4 mb-5 flex items-center gap-3 rounded-t-[1.6rem] px-4 py-3 sm:-mx-6 sm:-mt-6 sm:px-6 ${theme.bg} ${theme.text}`}>
+          <Art src={categoryInfo[type].image} alt="" size={56} className="h-12 w-12" />
+          <div>
+            <h2 className="text-2xl">{copy.title}</h2>
+            <p className="text-sm opacity-85">{copy.hint}</p>
+          </div>
+        </div>
+
+        <div
+          {...(single ? { role: 'radiogroup', 'aria-label': copy.title } : { role: 'group', 'aria-label': copy.title })}
+          className="grid grid-cols-2 gap-2.5 sm:grid-cols-3"
+        >
+          {optionLists[type].map((opt) => (
+            <OptionTile
+              key={opt}
+              imageSrc={optionImages[type][opt]}
+              label={opt}
+              selected={selected.includes(opt)}
+              single={single}
+              tone={theme.bg}
+              onClick={() => select(opt)}
+            />
+          ))}
+        </div>
+
+        {copy.field && (
+          <div className="mt-6">
+            <FieldLabel htmlFor={`f-${item.id}`} hint={copy.field.long ? undefined : 'Optional'}>{copy.field.label}</FieldLabel>
+            {type === 'letter' && <p className="mb-2 font-hand text-2xl leading-none text-ink-soft">Dear {toName?.trim() || 'someone special'},</p>}
+            {copy.field.long ? (
+              <TextArea
+                id={`f-${item.id}`}
+                value={(item.content[copy.field.key] as string) || ''}
+                onChange={(e) => onUpdateItem(item.id, { ...item.content, [copy.field!.key]: e.target.value })}
+                placeholder={copy.field.placeholder}
+                rows={7}
+                className="min-h-44"
+              />
+            ) : (
+              <TextInput
+                id={`f-${item.id}`}
+                value={(item.content[copy.field.key] as string) || ''}
+                onChange={(e) => onUpdateItem(item.id, { ...item.content, [copy.field!.key]: e.target.value })}
+                placeholder={copy.field.placeholder}
+              />
+            )}
           </div>
         )}
 
-        {/* Caption hint + photo grid */}
-        {photos.length > 0 && (
-          <>
-            {/* ── Caption hint banner ── */}
-            <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-xl"
-              style={{ background: 'rgba(139,42,62,0.06)', border: '1px dashed rgba(139,42,62,0.2)' }}>
-              <svg viewBox="0 0 20 20" fill="none" className="w-4 h-4 flex-shrink-0" style={{ color: '#8b2a3e' }}>
-                <path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm0 7v5m0-7h.01" stroke="#8b2a3e" strokeWidth="1.5" strokeLinecap="round" />
-              </svg>
-              <p className="text-[11px] font-[family-name:var(--font-dm-sans)]" style={{ color: '#8b2a3e' }}>
-                You can add a caption below each photo <span className="opacity-60">(optional)</span>
-              </p>
-            </div>
-
-            {/* Photo grid */}
-            <div className="mt-3 grid grid-cols-3 gap-2 sm:gap-3">
-              {photos.map((photo, i) => (
-                <motion.div key={i}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1, rotate: i % 2 === 0 ? -2 : 2 }}
-                  className="bg-white rounded-lg shadow-sm relative"
-                  style={{ padding: '6px 6px 28px 6px' }}>
-                  <div className="aspect-square bg-blush/20 rounded overflow-hidden">
-                    <img src={URL.createObjectURL(photo)} alt="" className="w-full h-full object-cover" />
-                  </div>
-                  {/* Remove button */}
-                  <button
-                    onClick={() => {
-                      const newPhotos = photos.filter((_, idx) => idx !== i)
-                      const newCaptions = captions.filter((_, idx) => idx !== i)
-                      onPhotoChange(newPhotos, newCaptions)
-                    }}
-                    className="absolute top-1 left-1 w-5 h-5 rounded-full bg-rose/80 text-white flex items-center justify-center text-[10px] hover:bg-rose transition-all cursor-pointer">
-                    ✕
-                  </button>
-                  {/* Caption input */}
-                  <input
-                    type="text"
-                    value={captions[i] || ''}
-                    onChange={(e) => {
-                      const c = [...captions]
-                      c[i] = e.target.value
-                      onPhotoChange(photos, c)
-                    }}
-                    placeholder="Caption"
-                    className="absolute bottom-1.5 left-1 right-1 text-center text-[10px] bg-transparent border-none focus:outline-none font-[family-name:var(--font-playfair)] italic"
-                    style={{
-                      color: captions[i] ? '#2a1a1f' : 'rgba(139,42,62,0.4)',
-                      borderBottom: '1px dashed rgba(139,42,62,0.3)',
-                      paddingBottom: '1px',
-                    }}
-                  />
-                </motion.div>
-              ))}
-            </div>
-          </>
+        {type === 'memory' && (
+          <div className="mt-6">
+            <FieldLabel>Photos ({(item.photos || []).length}/6)</FieldLabel>
+            <PhotoPicker
+              photos={item.photos || []}
+              captions={item.photoCaptions || []}
+              disabled={selected.length === 0}
+              onChange={(files, caps) => onUpdatePhotos(item.id, files, caps)}
+            />
+            {selected.length === 0 && <p className="mt-1 text-sm text-ink-soft">Pick a layout first.</p>}
+          </div>
         )}
-      </div>
-    </div>
-  )
-}
 
-// ── Main ──────────────────────────────────────────────────────────────────────
-export default function StepCustomize({ items, onUpdateItem, onUpdatePhotos, onRemoveItem, toName, fromName }: StepCustomizeProps) {
-  const [activeTab, setActiveTab] = useState(0)
-  if (items.length === 0) return null
-  const currentItem = items[Math.min(activeTab, items.length - 1)]
-
-  return (
-    <div>
-      <h2 className="font-[family-name:var(--font-playfair)] text-xl font-light italic text-text mb-1">
-        Customize your gifts
-      </h2>
-      <p className="font-[family-name:var(--font-playfair)] italic text-sm text-text-muted mb-3">
-        Choose the details for each one.
-      </p>
-
-      {/* Tabs */}
-      {items.length > 0 && (
-        <div className="flex gap-x-5 gap-y-1 mb-4 overflow-x-auto pb-1 flex-wrap">
-          {items.map((item, i) => (
-            <div key={item.id} className="flex items-center gap-1">
-              <button onClick={() => setActiveTab(i)}
-                className={`px-1 py-1.5 border-b-2 transition-all whitespace-nowrap font-[family-name:var(--font-dm-sans)] text-sm cursor-pointer
-                  ${activeTab === i ? 'border-rose text-rose font-medium' : 'border-transparent text-text-muted hover:text-text'}`}>
-                {typeLabels[item.type]}
-              </button>
-              {onRemoveItem && (
-                <button onClick={() => {
-                  onRemoveItem(item.id)
-                  setActiveTab(Math.max(0, activeTab - 1))
-                }}
-                  className="w-5 h-5 rounded-full flex items-center justify-center text-rose hover:bg-rose/20 transition-all text-xs cursor-pointer">
-                  ✕
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Hint */}
-      {(() => {
-        const c = currentItem.content || {}
-        const isEmpty =
-          currentItem.type === 'flower' ? ((c.styles as string[]) || []).length === 0 :
-            currentItem.type === 'sweets' ? ((c.types as string[]) || []).length === 0 :
-              currentItem.type === 'teddy' ? ((c.holdings as string[]) || []).length === 0 :
-                currentItem.type === 'magical' ? ((c.types as string[]) || []).length === 0 :
-                  currentItem.type === 'letter' ? ((c.styles as string[]) || []).length === 0 || String(c.text || '').trim().length === 0 :
-                    currentItem.type === 'memory' ? ((c.layouts as string[]) || []).length === 0 || (currentItem.photos || []).length === 0 : false
-        return isEmpty ? (
-          <p className="text-xs mb-2 font-[family-name:var(--font-dm-sans)]" style={{ color: '#8b2a3e' }}>
-            {currentItem.type === 'letter' && ((currentItem.content?.styles as string[]) || []).length > 0
-              ? '✦ Write your letter to continue'
-              : 'Choose at least one option to continue'
-            }
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t-2 border-ink/10 pt-4">
+          <p className={`text-sm font-semibold ${need ? 'text-ink' : 'text-ink-soft'}`} aria-live="polite">
+            {need ?? 'This one is ready'}
           </p>
-        ) : null
-      })()}
-
-      {/* Responsive padding: p-3 on mobile, p-5 on sm+ */}
-      <motion.div key={currentItem.id} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }}
-        className="pt-1">
-        {currentItem.type === 'flower' && <FlowerOptions content={currentItem.content} onChange={(c) => onUpdateItem(currentItem.id, c)} />}
-        {currentItem.type === 'sweets' && <SweetsOptions content={currentItem.content} onChange={(c) => onUpdateItem(currentItem.id, c)} />}
-        {currentItem.type === 'teddy' && <TeddyOptions content={currentItem.content} onChange={(c) => onUpdateItem(currentItem.id, c)} />}
-        {currentItem.type === 'magical' && <MagicalOptions content={currentItem.content} onChange={(c) => onUpdateItem(currentItem.id, c)} />}
-        {currentItem.type === 'letter' && <LetterOptions content={currentItem.content} onChange={(c) => onUpdateItem(currentItem.id, c)} toName={toName} fromName={fromName} />}
-        {currentItem.type === 'memory' && (
-          <MemoryOptions
-            content={currentItem.content}
-            onChange={(c) => onUpdateItem(currentItem.id, c)}
-            photos={currentItem.photos || []}
-            captions={currentItem.photoCaptions || []}
-            onPhotoChange={(files, caps) => onUpdatePhotos(currentItem.id, files, caps)}
-          />
-        )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => { onRemoveItem(item.id); setActive(Math.max(0, idx - 1)) }}
+          >
+            Remove {theme.name.toLowerCase()}
+          </Button>
+        </div>
       </motion.div>
-    </div>
+    </section>
   )
 }

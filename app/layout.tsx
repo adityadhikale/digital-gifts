@@ -1,45 +1,42 @@
 /**
- * Root layout component for the Digital Gifts application.
- * Configures global fonts (Playfair Display, DM Sans, Dancing Script)
- * and sets up metadata for SEO.
+ * Root layout: fonts, metadata and the viewport.
+ * Display and UI = Figtree, tag handwriting = Caveat.
  */
 
-import type { Metadata } from "next";
-import { Playfair_Display, DM_Sans, Dancing_Script } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Figtree, Caveat } from "next/font/google";
 import "./globals.css";
 
-/* Playfair Display - Elegant serif font for headings */
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
+const figtree = Figtree({
+  variable: "--font-figtree",
   subsets: ["latin"],
   display: "swap",
 });
 
-/* DM Sans - Modern sans-serif for body text */
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
+const caveat = Caveat({
+  variable: "--font-caveat",
   subsets: ["latin"],
   display: "swap",
 });
 
-/* Dancing Script - Handwritten style for romantic accents */
-const dancing = Dancing_Script({
-  variable: "--font-dancing",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-/** Site metadata for SEO and social sharing */
 export const metadata: Metadata = {
   title: "Digital Gifts | Make a gift and send it as a link",
   description:
     "Pick flowers, sweets, a teddy, a letter or photos, add a message, and send the recipient a link to open it.",
+  openGraph: {
+    title: "Digital Gifts",
+    description: "Make a gift and send it as a link.",
+    type: "website",
+  },
 };
 
-/**
- * Root layout wrapper - applies fonts to the entire application.
- * Font CSS variables are available globally for use in components.
- */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#f4f5ef",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -48,7 +45,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${playfair.variable} ${dmSans.variable} ${dancing.variable} antialiased`}
+        className={`${figtree.variable} ${caveat.variable} antialiased`}
       >
         {children}
       </body>
