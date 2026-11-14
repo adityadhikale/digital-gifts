@@ -1,5 +1,5 @@
 /**
- * Step 2 — fill each gift. One gift at a time, with a chip row showing which are done.
+ * Step 2 — choose: pick the exact things for each gift. One gift at a time, with a chip row showing which are done.
  * Every gift type shares the same option grid; each adds its own text field (and memories add photos).
  */
 
@@ -11,6 +11,7 @@ import Art from '@/components/ui/Art'
 import Button from '@/components/ui/Button'
 import { FieldLabel, TextArea, TextInput } from '@/components/ui/Field'
 import OptionTile from './OptionTile'
+import { BasketIcon } from '@/components/shop/Basket'
 import PhotoPicker from './PhotoPicker'
 import { categoryInfo, optionImages, optionLists, typeTheme } from '@/lib/giftCatalog'
 import { isItemComplete, missingFor } from '@/lib/builder'
@@ -22,6 +23,8 @@ interface StepCustomizeProps {
   onUpdatePhotos: (id: string, photos: File[], captions: string[]) => void
   onRemoveItem: (id: string) => void
   toName?: string
+  /** Go back to the shop (shown when the basket has been emptied) */
+  onBackToShop: () => void
 }
 
 /** [plural key, legacy singular key] — both are written so older readers keep working */
@@ -45,9 +48,23 @@ const COPY: Record<GiftType, { title: string; hint: string; field?: { key: strin
   memory: { title: 'Photo layout', hint: 'Pick one.', field: { key: 'title', label: 'Title', placeholder: 'For example: Summer 2025' } },
 }
 
-export default function StepCustomize({ items, onUpdateItem, onUpdatePhotos, onRemoveItem, toName }: StepCustomizeProps) {
+export default function StepCustomize({ items, onUpdateItem, onUpdatePhotos, onRemoveItem, toName, onBackToShop }: StepCustomizeProps) {
   const [active, setActive] = useState(0)
-  if (items.length === 0) return null
+
+  // Every gift was removed: say so and send them back to the shop
+  if (items.length === 0) {
+    return (
+      <section aria-labelledby="fill-h" className="flex flex-col items-center py-10 text-center">
+        <BasketIcon className="h-20 w-24" />
+        <h1 id="fill-h" className="mt-5 text-3xl sm:text-4xl">Your basket is empty</h1>
+        <p className="mt-2 max-w-sm text-base text-ink-soft">You took everything out. Go back to the shop and pick at least one gift.</p>
+        <Button className="mt-6" onClick={onBackToShop}>
+          <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" aria-hidden="true"><path d="M16 10H4m5 5-5-5 5-5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          Back to the shop
+        </Button>
+      </section>
+    )
+  }
 
   const idx = Math.min(active, items.length - 1)
   const item = items[idx]
@@ -67,7 +84,7 @@ export default function StepCustomize({ items, onUpdateItem, onUpdatePhotos, onR
 
   return (
     <section aria-labelledby="fill-h">
-      <h1 id="fill-h" className="text-3xl sm:text-4xl">Fill each gift</h1>
+      <h1 id="fill-h" className="text-3xl sm:text-4xl">Choose your gifts</h1>
       <p className="mt-2 text-base text-ink-soft" aria-live="polite">{doneCount} of {items.length} ready</p>
 
       {/* One chip per gift */}
@@ -117,7 +134,7 @@ export default function StepCustomize({ items, onUpdateItem, onUpdatePhotos, onR
 
         <div
           {...(single ? { role: 'radiogroup', 'aria-label': copy.title } : { role: 'group', 'aria-label': copy.title })}
-          className="grid grid-cols-2 gap-2.5 sm:grid-cols-3"
+          className="grid grid-cols-2 gap-3 sm:grid-cols-3"
         >
           {optionLists[type].map((opt) => (
             <OptionTile

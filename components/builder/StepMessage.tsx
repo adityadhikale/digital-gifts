@@ -1,5 +1,5 @@
 /**
- * Step 3 — write the tag. The form is the tag itself: To, message, From, on kraft paper,
+ * Step 4 — write a sweet note. The form is the tag itself: To, message, From, on kraft paper,
  * so what the sender types is what the recipient reads.
  */
 
@@ -18,13 +18,13 @@ interface StepMessageProps {
 
 const hand =
   'w-full border-0 border-b-2 border-ink/30 bg-transparent px-1 font-hand text-3xl leading-tight text-ink ' +
-  'placeholder:text-ink/40 focus:border-ink focus:outline-none focus:ring-0 min-w-0'
+  'placeholder:text-ink/40 focus:border-ink focus:outline-none focus-visible:outline-none focus:ring-0 min-w-0'
 
 export default function StepMessage({ toName, fromName, message, onToNameChange, onFromNameChange, onMessageChange }: StepMessageProps) {
   return (
     <section aria-labelledby="tag-h">
-      <h1 id="tag-h" className="text-3xl sm:text-4xl">Write the tag</h1>
-      <p className="mt-2 text-base text-ink-soft">They read this before they see the gifts. Both names are needed. The message is optional.</p>
+      <h1 id="tag-h" className="text-3xl sm:text-4xl">Write a sweet note</h1>
+      <p className="mt-2 text-base text-ink-soft">They read this right after they unwrap the box. Both names are needed; the note is optional.</p>
 
       <motion.div
         initial={{ opacity: 0, y: 14, rotate: -1 }}
@@ -52,7 +52,7 @@ export default function StepMessage({ toName, fromName, message, onToNameChange,
             onChange={(e) => onMessageChange(e.target.value)}
             placeholder="Write your message"
             rows={7}
-            className="mt-1 w-full resize-y rounded-xl border-2 border-ink/20 bg-paper/60 p-3 font-hand text-[1.7rem] leading-[1.15] text-ink placeholder:text-ink/40 focus:border-ink focus:outline-none focus:ring-4 focus:ring-butter/70"
+            className="mt-1 w-full resize-y rounded-xl border-2 border-ink/20 bg-paper/60 p-3 font-hand text-[1.7rem] leading-[1.15] text-ink placeholder:text-ink/40 focus:border-ink focus:outline-none focus-visible:outline-none focus:ring-4 focus:ring-butter/70"
           />
         </label>
 

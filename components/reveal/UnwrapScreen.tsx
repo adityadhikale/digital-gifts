@@ -8,10 +8,15 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useMotionValue, useReducedMotion, useTransform } from 'framer-motion'
+import { BoxBase, BoxLid } from '@/components/wrap/GiftBox'
+import { DEFAULT_WRAP, paperById, ribbonById } from '@/lib/wrap'
 
 interface UnwrapScreenProps {
   onComplete: () => void
   toName?: string
+  /** Wrapping the sender chose; defaults to pink paper and a cobalt ribbon */
+  paper?: string
+  ribbon?: string
 }
 
 const OPENING_MS = 2300
@@ -29,7 +34,8 @@ const CONFETTI = Array.from({ length: 30 }, (_, i) => ({
   round: i % 4 === 0,
 }))
 
-export default function UnwrapScreen({ onComplete, toName }: UnwrapScreenProps) {
+export default function UnwrapScreen({ onComplete, toName, paper = DEFAULT_WRAP.paper, ribbon = DEFAULT_WRAP.ribbon }: UnwrapScreenProps) {
+  const wrapColors = [ribbonById(ribbon).fill, paperById(paper).fill]
   const reduce = useReducedMotion()
   const [phase, setPhase] = useState<'idle' | 'opening' | 'done'>('idle')
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -71,20 +77,7 @@ export default function UnwrapScreen({ onComplete, toName }: UnwrapScreenProps) 
           {/* The box */}
           <div className="relative aspect-square w-[min(68vw,280px,36dvh)]">
             {/* Base */}
-            <svg viewBox="0 0 280 280" className="pointer-events-none absolute inset-0 h-full w-full overflow-visible" aria-hidden="true">
-              <ellipse cx="140" cy="254" rx="106" ry="11" fill="#14182b" opacity="0.14" />
-              {/* Dark inner rim revealed when the lid lifts */}
-              <rect x="44" y="118" width="192" height="16" rx="8" fill="#14182b" />
-              {/* Pink box body */}
-              <rect x="36" y="124" width="208" height="124" rx="20" fill="#ff8fb8" stroke="#14182b" strokeWidth="5.5" strokeLinejoin="round" />
-              {/* Cobalt vertical ribbon */}
-              <rect x="118" y="124" width="44" height="124" fill="#2f46e6" stroke="#14182b" strokeWidth="5.5" strokeLinejoin="round" />
-              {/* Subtle shadow cast by the lid */}
-              <rect x="39" y="126.5" width="202" height="14" fill="#14182b" opacity="0.14" />
-              {/* Glossy cartoon highlights */}
-              <path d="M54 156v42" fill="none" stroke="#ffffff" strokeWidth="6" strokeLinecap="round" opacity="0.9" />
-              <circle cx="54" cy="212" r="3" fill="#ffffff" opacity="0.9" />
-            </svg>
+            <BoxBase paper={paper} ribbon={ribbon} className="pointer-events-none absolute inset-0 h-full w-full" />
 
             {/* Draggable lid + plush bow */}
             <motion.button
@@ -104,28 +97,7 @@ export default function UnwrapScreen({ onComplete, toName }: UnwrapScreenProps) 
               whileHover={!opening && !reduce ? { y: -4 } : undefined}
               whileTap={{ scale: 0.98 }}
             >
-              <svg viewBox="0 22 280 118" className="h-full w-full overflow-visible" aria-hidden="true">
-                {/* Lid body */}
-                <rect x="22" y="84" width="236" height="50" rx="15" fill="#ff8fb8" stroke="#14182b" strokeWidth="5.5" strokeLinejoin="round" />
-                {/* Lid corner highlight */}
-                <path d="M36 112v-11a5 5 0 0 1 5-5h28" fill="none" stroke="#ffffff" strokeWidth="6" strokeLinecap="round" opacity="0.92" />
-                {/* Lid cobalt ribbon */}
-                <rect x="118" y="84" width="44" height="50" fill="#2f46e6" stroke="#14182b" strokeWidth="5.5" strokeLinejoin="round" />
-                {/* Bow tails */}
-                <path d="M132 82 105 112l13-3 6 9 14-31Z" fill="#2f46e6" stroke="#14182b" strokeWidth="5" strokeLinejoin="round" />
-                <path d="M148 82 175 112l-13-3-6 9-14-31Z" fill="#2f46e6" stroke="#14182b" strokeWidth="5" strokeLinejoin="round" />
-                {/* Bow loops */}
-                <path d="M134 78c-24 0-54-2-58-24-3-18 20-26 38-12 10 8 18 22 22 32Z" fill="#2f46e6" stroke="#14182b" strokeWidth="5.5" strokeLinejoin="round" />
-                <path d="M146 78c24 0 54-2 58-24 3-18-20-26-38-12-10 8-18 22-22 32Z" fill="#2f46e6" stroke="#14182b" strokeWidth="5.5" strokeLinejoin="round" />
-                {/* Loop creases */}
-                <path d="M126 72c-12-4-22-10-29-16" fill="none" stroke="#14182b" strokeWidth="4.5" strokeLinecap="round" />
-                <path d="M154 72c12-4 22-10 29-16" fill="none" stroke="#14182b" strokeWidth="4.5" strokeLinecap="round" />
-                {/* Loop specular highlights */}
-                <path d="M87 53c0-8 7-13 15-11" fill="none" stroke="#ffffff" strokeWidth="5" strokeLinecap="round" opacity="0.85" />
-                {/* Center knot */}
-                <rect x="128" y="65" width="24" height="22" rx="9" fill="#2f46e6" stroke="#14182b" strokeWidth="5.5" strokeLinejoin="round" />
-                <circle cx="136" cy="72" r="2.5" fill="#ffffff" opacity="0.85" />
-              </svg>
+              <BoxLid paper={paper} ribbon={ribbon} className="h-full w-full" />
             </motion.button>
           </div>
 
@@ -140,7 +112,7 @@ export default function UnwrapScreen({ onComplete, toName }: UnwrapScreenProps) 
                 <motion.span
                   key={i}
                   className="absolute block"
-                  style={{ width: c.w, height: c.h, marginLeft: -c.w / 2, marginTop: -c.h / 2, background: c.color, borderRadius: c.round ? 999 : 2 }}
+                  style={{ width: c.w, height: c.h, marginLeft: -c.w / 2, marginTop: -c.h / 2, background: i % 3 === 0 ? wrapColors[(i / 3) % 2] : c.color, borderRadius: c.round ? 999 : 2 }}
                   initial={{ x: 0, y: 0, opacity: 0, rotate: 0 }}
                   animate={{ x: c.x, y: [0, -c.rise, -c.rise + 140], opacity: [0, 1, 1, 0], rotate: c.rotate }}
                   transition={{ duration: 1.7, delay: c.delay, ease: 'easeOut' }}

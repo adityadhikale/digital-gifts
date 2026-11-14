@@ -1,6 +1,6 @@
 /**
- * Gift reveal page. The recipient opens it in the dark: unwrap → the tag (if there is a message)
- * → the gifts, each of which opens in a dialog.
+ * Gift reveal page: the surprise. Unwrap the box (in the sender's paper and ribbon) → read the
+ * note tucked in front of the gifts → tap each gift to open it.
  */
 
 'use client'
@@ -11,10 +11,10 @@ import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import { FullGift, Gift, GiftItem, GiftPhoto } from '@/lib/types'
 import UnwrapScreen from '@/components/reveal/UnwrapScreen'
-import LetterCard from '@/components/reveal/LetterCard'
-import GiftArrangement from '@/components/reveal/GiftArrangement'
+import GiftReveal from '@/components/reveal/GiftReveal'
 import Button from '@/components/ui/Button'
 import Logo from '@/components/ui/Logo'
+import { getWrap } from '@/lib/wrap'
 
 
 export default function GiftRevealPage() {
@@ -24,7 +24,7 @@ export default function GiftRevealPage() {
   const [gift, setGift] = useState<FullGift | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
-  const [stage, setStage] = useState<'unwrap' | 'letter' | 'arrange'>('unwrap')
+  const [stage, setStage] = useState<'unwrap' | 'reveal'>('unwrap')
 
   /** Fetch the gift, its items and photos (with public URLs) from Supabase */
   const fetchGift = useCallback(async () => {
@@ -57,9 +57,7 @@ export default function GiftRevealPage() {
     void fetchGift()
   }, [fetchGift])
 
-  const handleUnwrapped = useCallback(() => {
-    setStage(gift?.gift.message ? 'letter' : 'arrange')
-  }, [gift])
+  const handleUnwrapped = useCallback(() => setStage('reveal'), [])
 
   /* ── Loading ── */
   if (loading) {
@@ -93,56 +91,19 @@ export default function GiftRevealPage() {
 
   if (!gift) return null
 
+  const wrap = getWrap(gift.items)
+
   return (
-    <main className={`min-h-dvh overflow-x-clip text-ink transition-colors duration-500 ${stage === 'letter' ? 'bg-pink' : 'bg-paper'}`}>
-      {stage === 'unwrap' && <UnwrapScreen onComplete={handleUnwrapped} toName={gift.gift.to_name} />}
+    <main className="min-h-dvh overflow-x-clip bg-paper text-ink">
+      {stage === 'unwrap' && <UnwrapScreen onComplete={handleUnwrapped} toName={gift.gift.to_name} paper={wrap.paper} ribbon={wrap.ribbon} />}
 
-      {stage !== 'unwrap' && (
-        <div className="mx-auto flex min-h-dvh max-w-5xl flex-col items-center justify-center px-4 py-5 text-center sm:px-6">
-          {stage === 'letter' && (
-            <motion.div
-              key="letter"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              className="flex w-full flex-col items-center"
-            >
-              <h1 className="mb-6 text-3xl text-ink sm:text-5xl">You&apos;ve got a gift</h1>
-              <LetterCard message={gift.gift.message} fromName={gift.gift.from_name} toName={gift.gift.to_name} />
-              <div className="mt-8">
-                <Button variant="primary" size="lg" onClick={() => setStage('arrange')} arrow>See your gifts</Button>
-              </div>
-            </motion.div>
-          )}
-
-          {stage === 'arrange' && (
-            <motion.div
-              key="arrange"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.7 }}
-              className="flex w-full flex-col items-center"
-            >
-              <h1 className="text-3xl text-ink sm:text-5xl">From {gift.gift.from_name}</h1>
-              <p className="mb-4 mt-1 text-lg text-ink-soft">for <span className="font-semibold text-ink">{gift.gift.to_name}</span></p>
-
-              <GiftArrangement items={gift.items} giftId={id} fromName={gift.gift.from_name} toName={gift.gift.to_name} />
-
-              <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
-                {gift.gift.message && (
-                  <button
-                    type="button"
-                    onClick={() => setStage('letter')}
-                    className="h-11 rounded-full border-2 border-ink px-5 text-sm font-semibold text-ink transition-colors hover:bg-ink hover:text-paper active:scale-[0.97]"
-                  >
-                    Read the tag again
-                  </button>
-                )}
-                <Button href="/build" variant="accent" size="sm">Send your own gift</Button>
-              </div>
-              <div className="mt-5"><Logo small /></div>
-            </motion.div>
-          )}
+      {stage === 'reveal' && (
+        <div className="mx-auto flex min-h-dvh max-w-5xl flex-col items-center justify-center px-4 py-6 text-center sm:px-6">
+          <GiftReveal gift={gift} giftId={id} />
+          <div className="mt-6 flex flex-col items-center gap-4">
+            <Button href="/build" variant="accent" size="sm">Send your own gift</Button>
+            <Logo small />
+          </div>
         </div>
       )}
     </main>

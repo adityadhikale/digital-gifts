@@ -1,5 +1,5 @@
 /**
- * Step 4 — tie it up and send. Create the link (with visible progress and inline errors),
+ * Step 5 — send it. Create the link (with visible progress and inline errors),
  * then copy it, share it or preview it.
  */
 
@@ -95,11 +95,11 @@ export default function StepShare({ giftLink, onGenerate, isGenerating, error, p
   /* ── Ready / saving ── */
   return (
     <section aria-labelledby="send-h">
-      <h1 id="send-h" className="text-3xl sm:text-4xl">Tie it up</h1>
-      <p className="mt-2 text-base text-ink-soft">Check it over, then create the link.</p>
+      <h1 id="send-h" className="text-3xl sm:text-4xl">Send it</h1>
+      <p className="mt-2 text-base text-ink-soft">Check it over, then create the link to send.</p>
 
       <div className="mt-8 rounded-[1.75rem] border-2 border-ink bg-white p-5 sm:p-6">
-        <p className="text-sm font-semibold uppercase tracking-wider text-ink-soft">The gift</p>
+        <p className="text-sm font-semibold uppercase tracking-wider text-ink-soft">Your basket</p>
         <p className="mt-2 font-display text-3xl font-bold leading-tight">
           For {toName.trim() || '—'}
           <span className="block text-xl font-semibold text-ink-soft">from {fromName.trim() || '—'}</span>

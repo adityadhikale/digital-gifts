@@ -22,6 +22,9 @@
   --color-tomato: #f0452d;
   --color-mint: #5fd3a6;
 
+  /* Not a gift type: used only for the sender's note dialog */
+  --color-blush: #fbe3d6;
+
   --font-display: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
   --font-hand: var(--font-caveat), "Segoe Print", cursive;
@@ -50,20 +53,23 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-h1, h2, h3, h4 {
-  font-family: var(--font-display);
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  text-wrap: balance;
-}
+/* In the base layer so Tailwind utilities (e.g. whitespace-nowrap) can override the wrapping */
+@layer base {
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
 
-p { text-wrap: pretty; }
+  p { text-wrap: pretty; }
+}
 
 ::selection { background: var(--color-butter); color: var(--ink); }
 
 :focus-visible {
-  outline: 3px solid var(--color-cobalt);
+  outline: 3px solid var(--color-ink);
   outline-offset: 3px;
   border-radius: 6px;
 }
@@ -126,3 +132,4 @@ input, textarea, select { font-size: max(16px, 1em); }
     transition-duration: 0.01ms !important;
   }
 }
+

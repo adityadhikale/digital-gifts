@@ -1,17 +1,14 @@
 /**
- * Arrangement of a gift's items: each one sits on a tissue-colour disc, loosely scattered.
- * The sender picks an arrangement in the builder; it is saved with the gift and shown unchanged
- * to the recipient, who taps a disc to open that gift.
+ * Arrangement of a gift's items, loosely scattered like a bouquet. The sender picks an
+ * arrangement at the wrap step; it is saved with the gift and shown unchanged to the recipient.
  */
 
 'use client'
 
-import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import Art from '@/components/ui/Art'
-import { GiftItem, GiftItemContent, GiftPhoto, GiftType } from '@/lib/types'
-import { getItemImage, getItemLabel, typeTheme } from '@/lib/giftCatalog'
-import GiftModal from './GiftModal'
+import { GiftItemContent, GiftType } from '@/lib/types'
+import { getItemImage, getItemLabel, getSelections, typeTheme } from '@/lib/giftCatalog'
 
 /** The minimum an item needs to be drawn in the scene (builder items fit this too) */
 export interface ArrangementItem {
@@ -20,8 +17,6 @@ export interface ArrangementItem {
   content: GiftItemContent
   position?: number
 }
-
-type RevealItem = GiftItem & { photos?: GiftPhoto[] }
 
 /** A slot in the scene: centre position and size as percentages of the scene width */
 type Slot = readonly [x: number, y: number, size: number]
@@ -65,10 +60,12 @@ interface ArrangementSceneProps {
   width?: string
   /** When omitted, items are not clickable (builder preview) */
   onItemClick?: (id: string) => void
+  /** Name labels under each gift; off for small previews where they would crowd the art */
+  showLabels?: boolean
 }
 
 /** The scene itself: items placed in slots for the chosen variant */
-export function ArrangementScene({ items, variant, width = REVEAL_WIDTH, onItemClick }: ArrangementSceneProps) {
+export function ArrangementScene({ items, variant, width = REVEAL_WIDTH, onItemClick, showLabels = true }: ArrangementSceneProps) {
   const reduce = useReducedMotion()
   const sorted = [...items].sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
   const count = Math.min(sorted.length, 6)
@@ -77,70 +74,73 @@ export function ArrangementScene({ items, variant, width = REVEAL_WIDTH, onItemC
 
   const order = orderFor(count, variant)
 
+  const placed = sorted.slice(0, count).map((item, i) => {
+    const slotIndex = order.indexOf(i)
+    const [x, y, size] = slots[slotIndex]
+    return { item, i, slotIndex, x, y, size, label: getItemLabel(item.type, item.content) }
+  })
+
   return (
     <div className="relative mx-auto" style={{ width, aspectRatio: '5 / 4' }}>
-      {sorted.slice(0, count).map((item, i) => {
-        const slotIndex = order.indexOf(i)
-        const [x, y, size] = slots[slotIndex]
-        const label = getItemLabel(item.type, item.content)
-        const theme = typeTheme[item.type]
+      {placed.map(({ item, i, slotIndex, x, y, size, label }) => (
+        <motion.button
+          key={item.id}
+          type="button"
+          disabled={!onItemClick}
+          aria-label={onItemClick ? `Open ${label}` : label}
+          onClick={() => onItemClick?.(item.id)}
+          className={`group absolute aspect-square rounded-full ${onItemClick ? 'cursor-pointer' : 'cursor-default'}`}
+          style={{ x: '-50%', y: '-50%', width: `${size * 0.82}%` }}
+          initial={reduce ? false : { left: `${x}%`, top: `${y}%`, rotate: 0, scale: 0.4, opacity: 0 }}
+          animate={{ left: `${x}%`, top: `${y}%`, rotate: TILTS[(slotIndex + variant) % TILTS.length] * 0.6, scale: 1, opacity: 1 }}
+          whileHover={onItemClick && !reduce ? { scale: 1.07, zIndex: 20 } : undefined}
+          whileTap={onItemClick && !reduce ? { scale: 0.96 } : undefined}
+          transition={{ type: 'spring', stiffness: 120, damping: 16, delay: reduce ? 0 : i * 0.08 }}
+        >
+          <span className={`absolute inset-[6%] rounded-full ${typeTheme[item.type].bg} opacity-45`} aria-hidden="true" />
+          <Art
+            src={getItemImage(item.type, item.content)}
+            alt=""
+            size={400}
+            className="relative h-full w-full object-contain drop-shadow-[0_8px_10px_rgba(20,24,43,0.22)]"
+          />
+        </motion.button>
+      ))}
+
+      {/* Name labels in their own layer, so no gift's art can cover another gift's name.
+          Short on purpose: the category name plus how many things are inside (the dialog lists them).
+          Each sits just under its gift (the gift is square: its height is size×0.82% of the width, ÷0.8 in height %). */}
+      {showLabels && placed.map(({ item, i, x, y, size }) => {
+        const w = Math.min(size * 0.92, 60)
+        const left = Math.min(Math.max(x, w / 2 + 1), 99 - w / 2)
+        const count = getSelections(item.type, item.content).length
         return (
-          <motion.button
-            key={item.id}
-            type="button"
-            disabled={!onItemClick}
-            aria-label={onItemClick ? `Open ${label}` : label}
-            onClick={() => onItemClick?.(item.id)}
-            className={`group absolute aspect-square rounded-full ${onItemClick ? 'cursor-pointer' : 'cursor-default'}`}
-            style={{ x: '-50%', y: '-50%', width: `${size * 0.82}%` }}
-            initial={reduce ? false : { left: `${x}%`, top: `${y}%`, rotate: 0, scale: 0.4, opacity: 0 }}
-            animate={{ left: `${x}%`, top: `${y}%`, rotate: TILTS[(slotIndex + variant) % TILTS.length] * 0.6, scale: 1, opacity: 1 }}
-            whileHover={onItemClick && !reduce ? { scale: 1.07, zIndex: 20 } : undefined}
-            whileTap={onItemClick && !reduce ? { scale: 0.96 } : undefined}
-            transition={{ type: 'spring', stiffness: 120, damping: 16, delay: reduce ? 0 : i * 0.08 }}
-          >
-            <span className={`absolute inset-[6%] rounded-full ${theme.bg} opacity-45`} aria-hidden="true" />
-            <Art
-              src={getItemImage(item.type, item.content)}
-              alt=""
-              size={400}
-              className="relative h-full w-full object-contain drop-shadow-[0_8px_10px_rgba(20,24,43,0.22)]"
-            />
-            <span className="pointer-events-none absolute left-1/2 top-[92%] z-30 -translate-x-1/2 whitespace-nowrap rounded-full bg-ink px-2.5 py-0.5 text-[0.7rem] font-bold capitalize text-paper sm:text-xs">
-              {label}
-            </span>
-          </motion.button>
+        <motion.span
+          key={`label-${item.id}`}
+          aria-hidden="true"
+          className="pointer-events-none absolute z-30 flex w-max items-center gap-1 whitespace-nowrap rounded-full bg-ink py-0.5 pl-2.5 pr-1 text-[0.7rem] font-bold leading-tight text-paper sm:text-xs"
+          style={{
+            left: `${left}%`,
+            maxWidth: `${w}%`,
+            top: `${Math.min(y + size * 0.41, 93)}%`,
+            translateX: '-50%',
+            translateY: '-50%',
+          }}
+          initial={reduce ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: reduce ? 0 : 0.35 + i * 0.08 }}
+        >
+          <span className="pr-1.5">{typeTheme[item.type].name}</span>
+          {count > 1 && <span className="grid h-4 min-w-4 place-items-center rounded-full bg-paper px-1 text-[0.65rem] text-ink sm:h-[1.1rem] sm:text-[0.7rem]">{count}</span>}
+        </motion.span>
         )
       })}
     </div>
   )
 }
 
-interface GiftArrangementProps {
-  items: RevealItem[]
-  giftId: string
-  fromName?: string
-  toName?: string
-}
-
-/** Reveal-page arrangement: the sender's saved layout, with a dialog for each item */
-export default function GiftArrangement({ items, giftId, fromName, toName }: GiftArrangementProps) {
-  const [selected, setSelected] = useState<RevealItem | null>(null)
-
+/** The arrangement a gift was saved with, or a stable one derived from its id for older gifts */
+export function savedVariant(items: { content: GiftItemContent }[], giftId: string): number {
   const saved = items.map((i) => i.content.arrangement).find((n): n is number => typeof n === 'number')
-  const variant = saved ?? seedFrom(giftId)
-
-  return (
-    <div className="flex w-full flex-col items-center">
-      <ArrangementScene
-        items={items}
-        variant={variant}
-        onItemClick={(id) => setSelected(items.find((i) => i.id === id) ?? null)}
-      />
-
-      <p className="mt-3 font-hand text-3xl leading-none text-ink">Tap a gift to open it</p>
-
-      <GiftModal item={selected} onClose={() => setSelected(null)} fromName={fromName} toName={toName} />
-    </div>
-  )
+  return saved ?? seedFrom(giftId)
 }

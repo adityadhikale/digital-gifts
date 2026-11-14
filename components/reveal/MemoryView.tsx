@@ -41,12 +41,12 @@ function PolaroidWall({ photos, open }: { photos: GiftPhoto[]; open: OpenFn }) {
 
 function PhotoStrip({ photos, open }: { photos: GiftPhoto[]; open: OpenFn }) {
   return (
-    <ul className="mx-auto flex w-[min(62vw,210px)] flex-col gap-2 rounded-md bg-ink p-2.5 shadow-[0_8px_0_rgba(20,24,43,0.18)]">
+    <ul className="mx-auto flex w-[min(62vw,210px)] flex-col gap-2 rounded-md border-2 border-ink bg-white p-2.5 shadow-[0_8px_0_rgba(20,24,43,0.18)]">
       {photos.map((p, i) => (
         <li key={p.id || i}>
           <button type="button" onClick={() => open(i)} aria-label={`Open photo ${i + 1}${p.caption ? `: ${p.caption}` : ''}`} className={`${openBtn} w-full`}>
             <div className="aspect-[4/3] overflow-hidden"><Pic photo={p} index={i} /></div>
-            {p.caption && <p className="truncate pt-1 text-center font-hand text-lg leading-5 text-paper">{p.caption}</p>}
+            {p.caption && <p className="truncate pt-1 text-center font-hand text-lg leading-5 text-ink">{p.caption}</p>}
           </button>
         </li>
       ))}
