@@ -1,5 +1,5 @@
 /**
- * Gift builder: a four-step wizard (Pick → Fill → Write the tag → Tie and send).
+ * Gift builder: the gifting journey in five steps (Shop → Choose → Wrap → Note → Send).
  * Desktop shows a live phone preview beside the steps; phones open it in a bottom sheet.
  */
 
@@ -14,11 +14,14 @@ import Logo from '@/components/ui/Logo'
 import Sheet from '@/components/ui/Sheet'
 import StepPicker from '@/components/builder/StepPicker'
 import StepCustomize from '@/components/builder/StepCustomize'
+import StepWrap from '@/components/builder/StepWrap'
 import StepMessage from '@/components/builder/StepMessage'
 import StepShare, { ShareProgress } from '@/components/builder/StepShare'
 import LivePreview from '@/components/builder/LivePreview'
+import Basket from '@/components/shop/Basket'
+import { DEFAULT_WRAP, type WrapChoice } from '@/lib/wrap'
 
-const STEPS = ['Pick', 'Fill', 'Tag', 'Send'] as const
+const STEPS = ['Shop', 'Choose', 'Wrap', 'Note', 'Send'] as const
 
 export default function BuildPage() {
   const [step, setStep] = useState(0)
@@ -31,6 +34,9 @@ export default function BuildPage() {
 
   // Which arrangement of the gifts the recipient will see (saved with the gift)
   const [arrangement, setArrangement] = useState(0)
+  // Paper, ribbon and scene picked at the wrap step (saved with the gift)
+  const [wrap, setWrap] = useState<WrapChoice>(DEFAULT_WRAP)
+  const updateWrap = useCallback((patch: Partial<WrapChoice>) => setWrap((w) => ({ ...w, ...patch })), [])
 
   // Generation state. The gift id and uploaded photos are remembered so a retry resumes instead of duplicating.
   const [giftLink, setGiftLink] = useState<string | null>(null)
@@ -93,7 +99,7 @@ export default function BuildPage() {
     try {
       if (!giftId.current) {
         setProgress({ done: 0, total: 0, label: 'Saving your gift…' })
-        const itemsToSend = items.map((item) => ({ type: item.type, content: { ...item.content, arrangement } }))
+        const itemsToSend = items.map((item) => ({ type: item.type, content: { ...item.content, arrangement, wrap } }))
         const response = await fetch('/api/gifts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -139,14 +145,14 @@ export default function BuildPage() {
     } finally {
       setIsGenerating(false)
     }
-  }, [items, fromName, toName, message, arrangement])
+  }, [items, fromName, toName, message, arrangement, wrap])
 
   /** Whether the current step is complete enough to move on */
   const canProceed = (() => {
     switch (step) {
       case 0: return items.length > 0
       case 1: return items.length > 0 && items.every(isItemComplete)
-      case 2: return toName.trim() !== '' && fromName.trim() !== ''
+      case 3: return toName.trim() !== '' && fromName.trim() !== ''
       default: return true
     }
   })()
@@ -154,8 +160,8 @@ export default function BuildPage() {
   const locked = isGenerating || !!giftLink
   const hint =
     step === 0 && !canProceed ? 'Pick at least one gift' :
-    step === 1 && !canProceed ? 'Finish each gift to continue' :
-    step === 2 && !canProceed ? 'Add both names to continue' : ''
+    step === 1 && !canProceed ? (items.length === 0 ? 'Your basket is empty' : 'Finish each gift to continue') :
+    step === 3 && !canProceed ? 'Add both names to continue' : ''
 
   return (
     <div className="min-h-dvh bg-paper">
@@ -191,7 +197,7 @@ export default function BuildPage() {
 
       <div className="mx-auto grid max-w-6xl gap-10 px-5 sm:px-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-14">
         {/* ── Steps ── */}
-        <main className="min-w-0 pt-6 sm:pt-8">
+        <main className="min-w-0 pb-32 pt-6 sm:pb-24 sm:pt-8 lg:pb-0">
           <AnimatePresence mode="wait">
             <motion.div
               key={step}
@@ -203,15 +209,21 @@ export default function BuildPage() {
             >
               {step === 0 && <StepPicker selectedTypes={selectedTypes} onToggle={toggleType} />}
               {step === 1 && (
-                <StepCustomize items={items} onUpdateItem={updateItem} onUpdatePhotos={updatePhotos} onRemoveItem={removeItem} toName={toName} />
+                <StepCustomize items={items} onUpdateItem={updateItem} onUpdatePhotos={updatePhotos} onRemoveItem={removeItem} toName={toName} onBackToShop={() => setStep(0)} />
               )}
               {step === 2 && (
+                <StepWrap
+                  items={items} wrap={wrap} onWrapChange={updateWrap}
+                  arrangement={arrangement} onArrangementChange={setArrangement}
+                />
+              )}
+              {step === 3 && (
                 <StepMessage
                   toName={toName} fromName={fromName} message={message}
                   onToNameChange={setToName} onFromNameChange={setFromName} onMessageChange={setMessage}
                 />
               )}
-              {step === 3 && (
+              {step === 4 && (
                 <StepShare
                   giftLink={giftLink} onGenerate={handleGenerate} isGenerating={isGenerating}
                   error={error} progress={progress} toName={toName} fromName={fromName} types={selectedTypes}
@@ -220,22 +232,31 @@ export default function BuildPage() {
             </motion.div>
           </AnimatePresence>
 
-          {/* Action bar */}
-          <div className="sticky bottom-0 z-20 -mx-5 flex items-center gap-3 border-t-2 border-ink bg-paper px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:-mx-8 sm:px-8 lg:mx-0 lg:px-0">
-            {step > 0 && !giftLink && (
-              <Button variant="outline" onClick={() => setStep(step - 1)} disabled={isGenerating}>Back</Button>
-            )}
-            {step < 3 && (
-              <Button onClick={() => setStep(step + 1)} disabled={!canProceed} arrow>
-                {step === 2 ? 'Finish' : 'Next'}
+          {/* Action bar: pinned to the bottom of the screen on phones and tablets (always in thumb reach),
+              sticky under the steps on desktop. Preview sits left; Back and Next sit right, under the right thumb. */}
+          <div className="fixed inset-x-0 bottom-0 z-30 border-t-2 border-ink bg-paper px-5 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2.5 sm:px-8 lg:sticky lg:inset-x-auto lg:px-0 lg:pt-3">
+            {hint && <p className="mb-2 text-center text-xs font-semibold text-ink-soft sm:hidden" aria-live="polite">{hint}</p>}
+            <div className="flex items-center gap-3">
+              <Button variant="light" className="border-2 border-ink lg:hidden" onClick={() => setPreviewOpen(true)}>
+                Preview
               </Button>
-            )}
-            {hint && <p className="hidden min-w-0 flex-1 truncate text-sm text-ink-soft sm:block" aria-live="polite">{hint}</p>}
-            <Button variant="light" className="ml-auto border-2 border-ink lg:hidden" onClick={() => setPreviewOpen(true)}>
-              Preview
-            </Button>
+              {step <= 1 ? (
+                <div className="hidden min-w-0 flex-1 sm:block"><Basket types={selectedTypes} /></div>
+              ) : (
+                <p className="hidden min-w-0 flex-1 truncate text-sm text-ink-soft sm:block" aria-live="polite">{hint}</p>
+              )}
+              <div className="ml-auto flex items-center gap-2.5">
+                {step > 0 && !giftLink && (
+                  <Button variant="outline" onClick={() => setStep(step - 1)} disabled={isGenerating}>Back</Button>
+                )}
+                {step < 4 && (
+                  <Button onClick={() => setStep(step + 1)} disabled={!canProceed} arrow>
+                    {step === 3 ? 'Finish' : 'Next'}
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
-          {hint && <p className="mt-2 text-sm text-ink-soft sm:hidden" aria-live="polite">{hint}</p>}
         </main>
 
         {/* ── Desktop preview ── */}
@@ -243,7 +264,7 @@ export default function BuildPage() {
           <div className="sticky top-24 pt-8">
             <LivePreview
               items={items} toName={toName} fromName={fromName} message={message}
-              arrangement={arrangement} onArrangementChange={setArrangement}
+              arrangement={arrangement} wrap={wrap}
             />
           </div>
         </aside>
@@ -254,7 +275,7 @@ export default function BuildPage() {
         <LivePreview
           hideLabel
           items={items} toName={toName} fromName={fromName} message={message}
-          arrangement={arrangement} onArrangementChange={setArrangement}
+          arrangement={arrangement} wrap={wrap}
         />
       </Sheet>
     </div>

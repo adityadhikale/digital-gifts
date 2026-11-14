@@ -11,7 +11,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import Art from '@/components/ui/Art'
 import MemoryView from './MemoryView'
 import { GiftItem, GiftPhoto } from '@/lib/types'
-import { categoryInfo, getItemLabel, getSelections, optionImages, typeTheme } from '@/lib/giftCatalog'
+import { categoryInfo, getSelections, optionImages, typeTheme } from '@/lib/giftCatalog'
 
 type ModalItem = GiftItem & { photos?: GiftPhoto[] }
 
@@ -20,6 +20,10 @@ interface GiftModalProps {
   onClose: () => void
   fromName?: string
   toName?: string
+  /** Heading override (e.g. for the sender's note); defaults to the gift category name */
+  title?: string
+  /** Header colour classes override (bg + text); defaults to the gift category's tissue colour */
+  tone?: string
 }
 
 function Pills({ labels }: { labels: string[] }) {
@@ -34,11 +38,12 @@ function Pills({ labels }: { labels: string[] }) {
 
 function ArtRow({ item }: { item: ModalItem }) {
   const picked = getSelections(item.type, item.content)
-  const shown = picked.length ? picked : []
+  // Fewer picks get bigger art; five picks still fit in two short rows
+  const width = picked.length <= 2 ? 'w-[min(36vw,190px)]' : picked.length <= 3 ? 'w-[min(26vw,140px)]' : 'w-[min(22vw,112px)]'
   return (
-    <div className="flex flex-wrap items-center justify-center gap-3">
-      {shown.map((s) => (
-        <Art key={s} src={optionImages[item.type][s]} alt={s} size={400} className="h-auto w-[min(42vw,200px)] drop-shadow-[0_10px_12px_rgba(20,24,43,0.25)]" />
+    <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+      {picked.map((s) => (
+        <Art key={s} src={optionImages[item.type][s]} alt={s} size={400} className={`h-auto ${width} drop-shadow-[0_8px_10px_rgba(20,24,43,0.25)]`} />
       ))}
     </div>
   )
@@ -92,7 +97,7 @@ function Body({ item, fromName, toName }: { item: ModalItem; fromName?: string; 
   )
 }
 
-export default function GiftModal({ item, onClose, fromName, toName }: GiftModalProps) {
+export default function GiftModal({ item, onClose, fromName, toName, title, tone }: GiftModalProps) {
   const reduce = useReducedMotion()
   const [mounted, setMounted] = useState(false)
   const panel = useRef<HTMLDivElement>(null)
@@ -157,23 +162,27 @@ export default function GiftModal({ item, onClose, fromName, toName }: GiftModal
             transition={{ type: 'spring', damping: 30, stiffness: 340 }}
             className="relative flex max-h-[92dvh] w-full max-w-[680px] flex-col overflow-hidden rounded-t-[2rem] border-2 border-ink bg-paper outline-none sm:rounded-[2rem]"
           >
-            <div className={`relative shrink-0 px-5 pb-4 pt-4 text-center sm:px-7 ${theme.bg} ${theme.text}`}>
-              <button
-                type="button"
-                onClick={onClose}
-                aria-label="Close"
-                className="absolute right-3 top-3 z-10 grid h-11 w-11 place-items-center rounded-full border-2 border-ink bg-paper text-ink hover:bg-butter"
-              >
-                <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" /></svg>
-              </button>
+            {/* Stays put while the dialog content scrolls under it */}
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="absolute right-3 top-3 z-20 grid h-11 w-11 place-items-center rounded-full border-2 border-ink bg-paper text-ink shadow-[2px_2px_0_var(--color-ink)] hover:bg-butter"
+            >
+              <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" /></svg>
+            </button>
+            {/* The whole dialog scrolls (header art included), so many gifts never push the content out of reach */}
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-y-soft">
+            <div className={`relative px-5 pb-4 pt-4 text-center sm:px-7 ${tone ?? `${theme.bg} ${theme.text}`}`}>
               {item.type !== 'memory' && item.type !== 'letter' && <div className="pt-6"><ArtRow item={item} /></div>}
               {(item.type === 'memory' || item.type === 'letter') && (
                 <Art src={categoryInfo[item.type].image} alt="" size={200} className="mx-auto h-20 w-20 object-contain drop-shadow-[0_6px_8px_rgba(20,24,43,0.25)]" />
               )}
-              <h2 id={titleId} className="mt-2 text-2xl capitalize sm:text-3xl">{getItemLabel(item.type, item.content)}</h2>
+              <h2 id={titleId} className="mt-2 text-2xl sm:text-3xl">{title ?? theme.name}</h2>
             </div>
-            <div className="overflow-y-auto px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-5 sm:px-7 sm:pb-8">
+            <div className="px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-5 sm:px-7 sm:pb-8">
               <Body item={item} fromName={fromName} toName={toName} />
+            </div>
             </div>
           </motion.div>
         </motion.div>

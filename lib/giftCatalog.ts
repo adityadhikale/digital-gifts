@@ -104,11 +104,17 @@ export function getItemImage(type: GiftType, content: GiftItemContent): string {
   return first ?? categoryInfo[type].image
 }
 
-/** Short display label, e.g. "Rose + Peony" or "Teddy with Heart" */
+/** Join words as a natural list: "A", "A and B", "A, B and C" */
+export function naturalList(words: string[]): string {
+  if (words.length <= 1) return words[0] ?? ''
+  return `${words.slice(0, -1).join(', ')} and ${words[words.length - 1]}`
+}
+
+/** Short display label, e.g. "Rose and Peony" or "Teddy with Heart" */
 export function getItemLabel(type: GiftType, content: GiftItemContent): string {
-  const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+  const cap = (s: string) => s.split(" ").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
   const picked = getSelections(type, content)
   if (picked.length === 0) return categoryInfo[type].label
-  const joined = picked.map(cap).join(' + ')
+  const joined = naturalList(picked.map(cap))
   return type === 'teddy' ? `Teddy with ${joined}` : joined
 }

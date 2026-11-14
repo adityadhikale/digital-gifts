@@ -1,5 +1,6 @@
 /**
- * Step 1 — pick what to send. Each category is a tissue-coloured tile; pick one or more.
+ * Step 1 — go shopping. Each gift category is a product card (tissue-colour top with the
+ * illustration, paper label strip below, like the gift dialog). Tap to put it in the basket.
  */
 
 'use client'
@@ -17,10 +18,10 @@ interface StepPickerProps {
 export default function StepPicker({ selectedTypes, onToggle }: StepPickerProps) {
   return (
     <section aria-labelledby="pick-h">
-      <h1 id="pick-h" className="text-3xl sm:text-4xl">What do you want to send?</h1>
-      <p className="mt-2 text-base text-ink-soft">Pick one or more. Tap again to take it out.</p>
+      <h1 id="pick-h" className="text-3xl sm:text-4xl">Go shopping</h1>
+      <p className="mt-2 text-base text-ink-soft">Put what you like in your basket. Tap again to put it back.</p>
 
-      <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
         {GIFT_ORDER.map((type, index) => {
           const on = selectedTypes.includes(type)
           const t = typeTheme[type]
@@ -34,33 +35,31 @@ export default function StepPicker({ selectedTypes, onToggle }: StepPickerProps)
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.04, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                 whileTap={{ scale: 0.97 }}
-                className={`${t.bg} ${t.text} relative flex h-full w-full flex-col items-center rounded-[1.5rem] border-2 p-3 text-center transition-[box-shadow,border-color,transform] duration-200 sm:p-5
-                  ${on ? 'border-ink shadow-[0_0_0_4px_var(--color-paper),0_0_0_7px_var(--color-ink)]' : 'border-ink/25 hover:border-ink hover:-translate-y-0.5'}`}
+                className={`relative flex h-full w-full flex-col overflow-hidden rounded-[1.5rem] border-2 border-ink bg-paper text-left focus-visible:outline-ink transition-[box-shadow,transform] duration-200
+                  ${on ? 'shadow-[0_0_0_3px_var(--color-paper),0_0_0_6px_var(--color-ink)]' : 'hover:-translate-y-0.5 hover:shadow-[0_3px_0_var(--color-ink)]'}`}
               >
-                <span
-                  className={`absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-full border-2 border-ink transition-all duration-200 ${on ? 'scale-100 bg-ink' : 'scale-75 bg-white/60'}`}
-                  aria-hidden="true"
-                >
-                  {on && (
-                    <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none">
-                      <path d="m3 8.5 3.2 3.2L13 4.8" stroke="#f4f5ef" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  )}
+                <span className={`${t.bg} relative block aspect-[5/4]`}>
+                  <Art src={categoryInfo[type].image} alt="" size={220} priority={index < 4} className="absolute inset-0 m-auto h-[80%] w-[80%] object-contain" />
+                  <span
+                    className={`absolute right-2.5 top-2.5 grid h-7 w-7 place-items-center rounded-full border-2 border-ink transition-all duration-200 ${on ? 'scale-100 bg-ink' : 'scale-90 bg-paper'}`}
+                    aria-hidden="true"
+                  >
+                    {on ? (
+                      <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none"><path d="m3 8.5 3.2 3.2L13 4.8" stroke="#f4f5ef" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    ) : (
+                      <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none"><path d="M8 3.5v9M3.5 8h9" stroke="#14182b" strokeWidth="2.4" strokeLinecap="round" /></svg>
+                    )}
+                  </span>
                 </span>
-                <Art src={categoryInfo[type].image} alt="" size={220} priority={index < 4} className="h-auto w-[58%] max-w-[120px]" />
-                <span className="mt-2 font-display text-lg font-bold leading-tight sm:text-xl">{t.name}</span>
-                <span className="mt-0.5 text-[0.8rem] leading-tight opacity-85 sm:text-sm">{t.blurb}</span>
+                <span className="flex flex-1 flex-col border-t-2 border-ink px-3 py-2.5 sm:px-4">
+                  <span className="font-display text-base font-bold leading-tight text-ink sm:text-lg">{t.name}</span>
+                  <span className="mt-0.5 text-[0.78rem] leading-snug text-ink-soft sm:text-sm">{on ? 'In your basket' : t.blurb}</span>
+                </span>
               </motion.button>
             </li>
           )
         })}
       </ul>
-
-      <p className="mt-6 min-h-6 text-base font-semibold" aria-live="polite">
-        {selectedTypes.length === 0
-          ? 'Nothing picked yet'
-          : `${selectedTypes.length} picked: ${selectedTypes.map((t) => typeTheme[t].name).join(', ')}`}
-      </p>
     </section>
   )
 }
