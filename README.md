@@ -28,13 +28,13 @@
 
 <div align="center">
 
-### 🏠 Landing Page
+### 🏠 Landing Page — the gift shop
 <img src="./public/screenshots/landing-page.png" alt="Landing Page" width="80%" />
 
-### 🛠️ Gift Builder
+### 🛠️ Gift Builder — go shopping
 <img src="./public/screenshots/gift-builder.png" alt="Gift Builder" width="80%" />
 
-### 🎀 Gift Reveal
+### 🎀 Gift Reveal — composed gifts and a handwritten note
 <img src="./public/screenshots/gift-reveal.png" alt="Gift Reveal" width="80%" />
 
 </div>
@@ -43,7 +43,7 @@
 
 ## 💫 About
 
-**Digital Gifts** is a romantic web application that lets you create and share personalized virtual presents. Instead of physical gifts, send your loved ones beautiful digital bouquets, sweet treats, teddy bears, magical items, love letters, or cherished photo memories — all wrapped in a delightful unwrapping experience. 🌸
+**Digital Gifts** is a little online gift shop for big feelings. Step into the shop, fill your basket with digital bouquets, sweet treats, teddy bears, magical items, letters, or cherished photos, wrap them up, add a note, and send a link they can open on their phone. 🌸
 
 ---
 
@@ -62,8 +62,10 @@
 
 ### 🚀 Core Features
 
-- 🧙 **Multi-Step Gift Builder** — Intuitive 4-step wizard (Pick → Customize → Message → Share)
+- 🧙 **Multi-Step Gift Builder** — Intuitive 5-step shop journey (Shop → Choose → Wrap → Note → Send)
 - 👁️ **Live Preview** — See your gift come together in real-time as you build it
+- 🧺 **Shopping Basket** — Pick several gifts and keep them in your basket as you go
+- 🎀 **Wrap Step** — Choose how your gift is wrapped before sending
 - 🎨 **Multiple Gift Items** — Combine different gift types into one package
 - 🎊 **Beautiful Reveal Animation** — Recipients experience a delightful gift unwrapping animation
 - 🔗 **Shareable Links** — Each gift gets a unique URL to share with your loved one
@@ -150,22 +152,25 @@ digitalgifts/
 │   ├── layout.tsx
 │   └── page.tsx               # Landing page
 ├── 📂 components/
-│   ├── 📂 builder/            # Builder wizard (StepPicker, StepCustomize, OptionTile,
+│   ├── 📂 builder/            # Builder wizard (StepPicker, StepCustomize, StepWrap, OptionTile,
 │   │                          #   PhotoPicker, StepMessage, StepShare, LivePreview)
+│   ├── 📂 shop/               # Basket
+│   ├── 📂 wrap/               # Gift wrapping (GiftBox, Backdrop)
 │   ├── 📂 reveal/             # Gift reveal (UnwrapScreen, LetterCard, GiftArrangement,
-│   │                          #   GiftModal, MemoryView)
+│   │                          #   GiftModal, GiftReveal, MemoryView)
 │   ├── 📂 landing/            # Landing hero art
 │   └── 📂 ui/                 # Button, Field, Sheet, Logo, Art
 ├── 📂 lib/
 │   ├── giftCatalog.ts         # Gift types, options, colours, illustration paths
 │   ├── builder.ts             # Default content + step validation
+│   ├── wrap.ts                # Wrapping options
 │   ├── image.ts               # In-browser photo shrinking before upload
 │   ├── supabase.ts            # Supabase client
 │   ├── types.ts               # TypeScript interfaces
 │   └── nanoid.ts              # ID generation
 └── 📂 public/
     ├── 📂 illustrations/      # Flat SVG gift illustrations
-    └── 📂 screenshots/        # README screenshots ← add yours here
+    └── 📂 screenshots/        # README screenshots
 ```
 
 ---
