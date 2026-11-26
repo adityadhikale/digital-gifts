@@ -14,7 +14,7 @@
 
 <br/>
 
-> 💌 *Because the best gifts come from the heart — not a shopping cart.*
+> 💌 *Because the best gifts come from the heart - not a shopping cart.*
 
 <br/>
 
