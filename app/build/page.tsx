@@ -20,6 +20,7 @@ import StepShare, { ShareProgress } from '@/components/builder/StepShare'
 import LivePreview from '@/components/builder/LivePreview'
 import Basket from '@/components/shop/Basket'
 import { DEFAULT_WRAP, type WrapChoice } from '@/lib/wrap'
+import { friendlyError, SERVICE_DOWN_MESSAGE } from '@/lib/friendlyError'
 
 const STEPS = ['Shop', 'Choose', 'Wrap', 'Note', 'Send'] as const
 
@@ -105,9 +106,9 @@ export default function BuildPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ fromName, toName, message, items: itemsToSend }),
         })
-        const data = await response.json()
-        if (!response.ok) throw new Error(data.error || 'Failed to create gift')
-        if (!data.id) throw new Error(data.error || 'Failed to create gift')
+        const data = await response.json().catch(() => ({}))
+        if (!response.ok) throw new Error(friendlyError(data.error, 'Failed to create gift'))
+        if (!data.id) throw new Error(friendlyError(data.error, 'Failed to create gift'))
         giftId.current = data.id as string
       }
 
@@ -131,7 +132,8 @@ export default function BuildPage() {
         const photoResponse = await fetch('/api/photos', { method: 'POST', body: formData })
         if (!photoResponse.ok) {
           const errorData = await photoResponse.json().catch(() => ({}))
-          throw new Error(`Photo ${done + 1} didn't upload${errorData.error ? ` (${errorData.error})` : ''}`)
+          const reason = errorData.error ? friendlyError(errorData.error, '') : ''
+          throw new Error(reason === SERVICE_DOWN_MESSAGE ? reason : `Photo ${done + 1} didn't upload${reason ? ` (${reason})` : ''}`)
         }
         uploaded.current.add(job.key)
         done += 1
@@ -141,7 +143,7 @@ export default function BuildPage() {
       setGiftLink(`${window.location.origin}/gift/${giftId.current}`)
     } catch (e) {
       console.error('Error generating gift:', e)
-      setError(e instanceof Error ? e.message : 'Something went wrong')
+      setError(friendlyError(e))
     } finally {
       setIsGenerating(false)
     }

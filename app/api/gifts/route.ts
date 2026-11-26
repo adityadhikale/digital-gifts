@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { generateGiftId } from '@/lib/nanoid'
+import { friendlyError } from '@/lib/friendlyError'
 import type { GiftType, GiftItemContent } from '@/lib/types'
 
 /** Request body structure for creating a gift */
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
     if (giftError) {
       console.error('Gift insert error:', giftError)
       return NextResponse.json(
-        { error: giftError.message || 'Failed to create gift' },
+        { error: friendlyError(giftError.message, 'Failed to create gift') },
         { status: 500 }
       )
     }
@@ -86,7 +87,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('API error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
+      { error: friendlyError(error, 'Internal server error') },
       { status: 500 }
     )
   }
