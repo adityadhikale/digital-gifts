@@ -28,13 +28,13 @@
 
 <div align="center">
 
-### 🏠 Landing Page — the gift shop
+### 🏠 Landing Page - the gift shop
 <img src="./public/screenshots/landing-page.png" alt="Landing Page" width="80%" />
 
-### 🛠️ Gift Builder — go shopping
+### 🛠️ Gift Builder - go shopping
 <img src="./public/screenshots/gift-builder.png" alt="Gift Builder" width="80%" />
 
-### 🎀 Gift Reveal — composed gifts and a handwritten note
+### 🎀 Gift Reveal - composed gifts and a handwritten note
 <img src="./public/screenshots/gift-reveal.png" alt="Gift Reveal" width="80%" />
 
 </div>
@@ -62,15 +62,15 @@
 
 ### 🚀 Core Features
 
-- 🧙 **Multi-Step Gift Builder** — Intuitive 5-step shop journey (Shop → Choose → Wrap → Note → Send)
-- 👁️ **Live Preview** — See your gift come together in real-time as you build it
-- 🧺 **Shopping Basket** — Pick several gifts and keep them in your basket as you go
-- 🎀 **Wrap Step** — Choose how your gift is wrapped before sending
-- 🎨 **Multiple Gift Items** — Combine different gift types into one package
-- 🎊 **Beautiful Reveal Animation** — Recipients experience a delightful gift unwrapping animation
-- 🔗 **Shareable Links** — Each gift gets a unique URL to share with your loved one
-- 🖼️ **Photo Memories** — Upload personal photos with captions for the memory gift type
-- 📱 **Fully Responsive** — Works beautifully on mobile, tablet, and desktop
+- 🧙 **Multi-Step Gift Builder** : Intuitive 5-step shop journey (Shop → Choose → Wrap → Note → Send)
+- 👁️ **Live Preview** : See your gift come together in real-time as you build it
+- 🧺 **Shopping Basket** : Pick several gifts and keep them in your basket as you go
+- 🎀 **Wrap Step** : Choose how your gift is wrapped before sending
+- 🎨 **Multiple Gift Items** : Combine different gift types into one package
+- 🎊 **Beautiful Reveal Animation** : Recipients experience a delightful gift unwrapping animation
+- 🔗 **Shareable Links** : Each gift gets a unique URL to share with your loved one
+- 🖼️ **Photo Memories** : Upload personal photos with captions for the memory gift type
+- 📱 **Fully Responsive** : Works beautifully on mobile, tablet, and desktop
 
 ---
 
@@ -124,9 +124,9 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 Create the following tables in your Supabase project:
 
-- 🗃️ `gifts` — Stores gift metadata (id, from_name, to_name, message, created_at)
-- 🗃️ `gift_items` — Stores individual gift items (id, gift_id, type, content, position)
-- 🗃️ `gift_photos` — Stores photo references (id, gift_item_id, storage_path, caption, position)
+- 🗃️ `gifts` - Stores gift metadata (id, from_name, to_name, message, created_at)
+- 🗃️ `gift_items` - Stores individual gift items (id, gift_id, type, content, position)
+- 🗃️ `gift_photos` - Stores photo references (id, gift_item_id, storage_path, caption, position)
 
 Create a storage bucket named **`digitalgifts-photos`** for photo uploads.
 
