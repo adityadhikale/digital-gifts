@@ -53,12 +53,12 @@
 
 | 🎁 Category | 📝 Description |
 |:-----------:|----------------|
-| 💐 **Flowers** | A bouquet that never wilts — Rose, Peony, Wildflower, Tulip, Sunflower |
-| 🍫 **Sweet Treats** | Sugar, spice and everything nice — Chocolate Box, Cupcakes, Macarons, Cookie Jar, Cake |
-| 🧸 **Teddy Bears** | A hug they can keep forever — Heart, Flower, Balloon, Gift Box variants |
-| ✨ **Magical** | A little wonder, just for them — Snow Globe, Floating Balloons, Wishing Lantern, Jar of Stars |
-| 💌 **Love Letters** | Words straight from your heart — Parchment Scroll, Sealed Envelope, Open Letter |
-| 📷 **Memories** | Upload up to 6 photos with captions — Polaroid Wall, Photo Strip, Scrapbook, Memory Jar |
+| 💐 **Flowers** | A bouquet that never wilts - Rose, Peony, Wildflower, Tulip, Sunflower |
+| 🍫 **Sweet Treats** | Sugar, spice and everything nice - Chocolate Box, Cupcakes, Macarons, Cookie Jar, Cake |
+| 🧸 **Teddy Bears** | A hug they can keep forever - Heart, Flower, Balloon, Gift Box variants |
+| ✨ **Magical** | A little wonder, just for them - Snow Globe, Floating Balloons, Wishing Lantern, Jar of Stars |
+| 💌 **Love Letters** | Words straight from your heart - Parchment Scroll, Sealed Envelope, Open Letter |
+| 📷 **Memories** | Upload up to 6 photos with captions - Polaroid Wall, Photo Strip, Scrapbook, Memory Jar |
 
 ### 🚀 Core Features
 
